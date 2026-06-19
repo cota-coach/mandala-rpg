@@ -49,7 +49,7 @@
   <!-- FontAwesome Icons for RPG Vibe -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <!-- React 18 & Babel standalone -->
+  <!-- React 18 & Babel standalone (URLを正常なCDNに完全復旧) -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js" crossorigin="anonymous"></script>
@@ -153,7 +153,7 @@
   <div id="root" class="h-full w-full"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useRef, useMemo } = React;
+    const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
     // 20色のプレミアムカラーパレット（ベース色相リスト）
     const PRESET_HUES = [
@@ -239,7 +239,7 @@
         3: { // 心・精神性
           4: "マインドフルネスの確立と\n揺るぎない自己信頼",
           0: "朝20分の瞑想習慣", 1: "感謝日記の毎晩アウトプット", 2: "感情のセルフモニタリング", 3: "週末デジタルデトックス",
-          5: "心のノイズを削ぎ落とす", 6: "聖典や名著からの学び", 7: "自然と調和する時間の確保", 8: "自己一致のライフワーク追求"
+          5: "心のノイズを削ぎ落とす", 6: "聖典や名著からの学び", 7: "自然と調和する時間の確保", 8: "自己一致 of ライフワーク追求"
         },
         4: { // 人生の大目標
           4: "公益と利他を循環させ\n自律型リーダーの模範となる",
@@ -369,6 +369,8 @@
       const [editingBlockNameIdx, setEditingBlockNameIdx] = useState(null);
       const [tempBlockName, setTempBlockName] = useState("");
 
+      const [backupZoomBlock, setBackupZoomBlock] = useState(null);
+
       const [dialogState, setDialogState] = useState({ show: false, type: "", title: "", text: "", onConfirm: null });
       const [toastText, setToastText] = useState("");
 
@@ -407,19 +409,15 @@
         const width = window.innerWidth;
         const height = window.innerHeight;
         
-        // 実機モバイルか、タッチスクリーンを持つ中小型ディスプレイ（iPad含む）かをより厳格に判定
         const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         const hasTouchScreen = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
         
         const mobile = isMobileUA || (hasTouchScreen && width < 1024);
-        
-        // 【大改善】高さを最大限確保するため、高さ550px未満かつ横長の場合は、PCプレビュー含むすべての環境で「ランドスケープ（横置き隠蔽モード）」を完全適用！
         const landscape = height < 550 && width > height;
 
         setIsMobile(mobile || landscape);
         setIsLandscape(landscape);
 
-        // 横幅が広くて十分な高さがある通常PC環境の時のみ、初期状態でサイドバーを開きっぱなしにする
         if (!mobile && !landscape) {
           setIsSidebarOpen(true);
         } else {
@@ -427,10 +425,14 @@
         }
       };
 
-      const fitToScreen = () => {
+      // 画面ピッタリにフィットさせる超強力スケーリングシステム（バグ回避の最強メモライズ化）
+      const fitToScreen = useCallback(() => {
         if (!boardContainerRef.current) return;
         const containerWidth = boardContainerRef.current.clientWidth;
         const containerHeight = boardContainerRef.current.clientHeight;
+        
+        // 0や極小サイズ（ブラウザ初期描画前、iframeロード前）の時は計算をスキップしてバグを防ぐ！
+        if (containerWidth < 50 || containerHeight < 50) return;
         
         const boardW = 1722;
         const boardH = 1137;
@@ -448,20 +450,28 @@
 
         setScale(clampedScale);
         setScrollOffset({ x: offsetX, y: offsetY });
-      };
+      }, [isMobile]);
 
+      // 初回ロード時のブラウザリスナー設定
       useEffect(() => {
         handleResizeAndOrientation();
         window.addEventListener("resize", handleResizeAndOrientation);
-        setTimeout(fitToScreen, 200);
         return () => window.removeEventListener("resize", handleResizeAndOrientation);
-      }, [zoomBlock]);
+      }, []);
 
-      // サイドバーの開閉完了に完全に合わせて再フィットを駆動
+      // ResizeObserverにより、Canvasエリアの本当のピクセル変化を検知してミリ秒で自動フィット
       useEffect(() => {
-        const timer = setTimeout(fitToScreen, 310);
-        return () => clearTimeout(timer);
-      }, [isSidebarOpen]);
+        if (!boardContainerRef.current) return;
+        
+        const observer = new ResizeObserver(() => {
+          window.requestAnimationFrame(() => {
+            fitToScreen();
+          });
+        });
+        
+        observer.observe(boardContainerRef.current);
+        return () => observer.disconnect();
+      }, [fitToScreen, isSidebarOpen, zoomBlock]);
 
       useEffect(() => {
         const board = boardContainerRef.current;
@@ -768,15 +778,28 @@
         updateCellData(b, c, { level: nextLvl });
       };
 
+      // 編集開始
       const startInlineEdit = (b, c, e) => {
         if (e) e.stopPropagation();
+        
+        // 編集前のクローズアップ状態を記憶しておく
+        setBackupZoomBlock(zoomBlock);
+        
+        // 編集中の3x3ブロックを自動クローズアップ展開
+        setZoomBlock(b);
+        
         setEditingCell({ b, c });
         setInlineText(cells?.[b]?.[c]?.text || "");
       };
 
+      // 編集終了
       const saveInlineEdit = () => {
         if (editingCell) {
           updateCellData(editingCell.b, editingCell.c, { text: inlineText });
+          
+          // 編集を開始する前のズーム状態に完全復元
+          setZoomBlock(backupZoomBlock);
+          
           setEditingCell(null);
         }
       };
@@ -947,7 +970,7 @@
             </div>
           )}
 
-          {/* 左側サイドバー：【大改造】h-screen（高さ100%）に固定、モバイル/横画面時はセクセフエリアをフル活用。横向きの表示バグを完全解消 */}
+          {/* 左側サイドバー */}
           <div className={`no-print transition-all duration-300 ease-in-out flex flex-col h-screen bg-[#0d1424] border-r border-slate-800/80 
             ${isMobile || isLandscape 
               ? 'fixed inset-y-0 left-0 w-80 shadow-[10px_0_50px_rgba(0,0,0,0.85)] z-50' 
@@ -957,7 +980,7 @@
             ${fullPrintMode ? 'hidden' : ''}
           `}>
             
-            {/* 固定ヘッダー（最上部に常に極小サイズで固定。プロジェクト名と閉じるボタンだけを置くことでスクロール領域を最大化） */}
+            {/* 固定ヘッダー */}
             <div className="p-4 border-b border-slate-800/80 flex items-center justify-between gap-2 bg-[#0a0f1c] shrink-0">
               <div className="flex items-center gap-2 flex-grow">
                 <i className="fa-solid fa-gem text-yellow-500 text-base"></i>
@@ -979,10 +1002,10 @@
               </button>
             </div>
 
-            {/* 【大改造】超広大・統合シングルスクロールエリア（残り高さすべて。モバイル横置きでもスクロールが詰まらず最下部まで100%滑らかに届きます） */}
+            {/* 超広大・統合シングルスクロールエリア */}
             <div className="flex-grow overflow-y-auto p-4 space-y-4 no-scrollbar bg-[#0d1424]">
               
-              {/* 1. 大目標進捗インジケーター（スクロールの一部にして高さを節約） */}
+              {/* 1. 大目標進捗インジケーター */}
               <div className="bg-slate-900/90 p-3.5 rounded-xl border border-slate-800/60">
                 <div className="flex justify-between items-center text-[10px] mb-1.5">
                   <span className="text-slate-400 font-bold">最中心大目標ランク</span>
@@ -999,12 +1022,17 @@
                 </div>
               </div>
 
-              {/* 2. モバイル実機・または横画面専用の設定パネル（ヘッダーから引きずり下ろしてスクロールエリアに同乗！） */}
+              {/* モバイル表示時またはランドスケープ時のみ設定をインクルード */}
               {(isMobile || isLandscape) && (
-                <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800/80 space-y-3 text-[11px] no-drag">
-                  <div className="text-slate-400 font-bold border-b border-slate-900 pb-1.5 flex items-center gap-1.5">
-                    <i className="fa-solid fa-sliders text-cyan-400"></i>
-                    <span>モバイル設定・操作</span>
+                <div className="bg-slate-950 p-3 rounded-xl border border-slate-800/80 space-y-2.5 mt-1 text-[11px] no-drag">
+                  <div className="flex justify-between items-center text-slate-400 font-bold border-b border-slate-900 pb-1.5 mb-1.5">
+                    <span>📱 モバイル設定</span>
+                    <button 
+                      onClick={() => setIsSidebarOpen(false)} 
+                      className="text-red-400 hover:text-red-300 font-bold"
+                    >
+                      閉じる
+                    </button>
                   </div>
                   
                   {/* インク節約 */}
@@ -1021,12 +1049,12 @@
                     </button>
                   </div>
 
-                  {/* 画面にフィット ＆ 印刷 */}
+                  {/* フィット ＆ 印刷 */}
                   <div className="grid grid-cols-2 gap-2 mt-1">
                     <button
                       onClick={() => {
                         fitToScreen();
-                        setIsSidebarOpen(false); // 利便性のために閉じます
+                        setIsSidebarOpen(false); 
                       }}
                       className="bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 py-1.5 rounded text-[10px] font-bold transition-all flex items-center justify-center gap-1.5"
                     >
@@ -1042,7 +1070,7 @@
                     </button>
                   </div>
 
-                  {/* ズーム調節スライダー */}
+                  {/* ズーム */}
                   <div className="flex items-center justify-between text-slate-300 border-t border-slate-900 pt-2.5">
                     <span>手動ズーム調節</span>
                     <div className="flex items-center gap-1.5 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-850">
@@ -1053,7 +1081,7 @@
                   </div>
                 </div>
               )}
-
+              
               {/* 3. マス目標編集パネル */}
               <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800/80">
                 <div className="flex justify-between items-start mb-3">
@@ -1079,7 +1107,7 @@
                     value={currentCellData.text}
                     onChange={(e) => updateCellData(selectedCell.b, selectedCell.c, { text: e.target.value })}
                     rows={3}
-                    className="w-full bg-slate-950 border border-slate-800/80 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-yellow-500 font-medium whitespace-pre-wrap leading-relaxed"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-yellow-500 font-medium whitespace-pre-wrap leading-relaxed"
                     placeholder="ここにマスの行動計画や目標を入力してください..."
                   />
                 </div>
@@ -1190,7 +1218,7 @@
                 </div>
               </div>
 
-              {/* 6. システム管理ボタン集（フッターからスクロールの一部に移動させ、画面を100%活用！） */}
+              {/* 6. システム管理ボタン集 */}
               <div className="bg-slate-950/50 p-3.5 rounded-xl border border-slate-850 space-y-2.5">
                 <div className="text-[9px] text-slate-400 font-bold tracking-widest flex items-center gap-1">
                   <i className="fa-solid fa-database text-yellow-500"></i>
@@ -1199,12 +1227,12 @@
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={exportData}
-                    className="bg-slate-900 hover:bg-slate-800 text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all border border-slate-800"
+                    className="bg-slate-900 hover:bg-slate-800 text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all border border-slate-700"
                   >
                     <i className="fa-solid fa-file-export"></i>
                     バックアップ
                   </button>
-                  <label className="bg-slate-900 hover:bg-slate-800 text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all border border-slate-800 cursor-pointer text-center">
+                  <label className="bg-slate-900 hover:bg-slate-800 text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all border border-slate-750 cursor-pointer text-center">
                     <i className="fa-solid fa-file-import"></i>
                     復元ロード
                     <input type="file" accept=".json" onChange={importData} className="hidden" />
@@ -1235,7 +1263,7 @@
           {/* 右側メインキャンバス */}
           <div className="flex-grow flex flex-col h-full overflow-hidden relative">
             
-            {/* 上部ヘッダー（モバイル実機・または横長ランドスケープ時のみ非表示にし、通常PC環境では100%完全常時表示） */}
+            {/* 上部ヘッダー */}
             <div className={`p-4 bg-[#0a0f1d] border-b border-slate-800 flex flex-wrap justify-between items-center gap-3 z-10 no-print 
               ${fullPrintMode || isMobile || isLandscape ? 'hidden' : ''}
             `}>
@@ -1428,7 +1456,7 @@
                             ? 'bg-white border-2 border-black shadow-none' 
                             : 'bg-[#121927]/95 border-slate-800/80 shadow-[0_4px_25px_rgba(0,0,0,0.45)]'
                         } ${
-                          zoomBlock !== null ? 'scale-[1.8] origin-center z-40 mx-auto my-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 shadow-[0_0_50px_rgba(0,0,0,0.8)]' : ''
+                          zoomBlock !== null ? 'scale-[1.8] origin-center z-40 mx-auto my-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 shadow-[0_0_50px_rgba(0,0,0,0.85)]' : ''
                         }`}
                       >
                         {/* ブロックタイトル */}
@@ -1552,7 +1580,7 @@
                                       onBlur={saveInlineEdit}
                                       autoFocus
                                       rows={2}
-                                      className="w-full text-[11px] bg-slate-950 text-white p-1 rounded leading-tight whitespace-pre-wrap border border-yellow-500 font-medium focus:outline-none no-drag"
+                                      className="w-full text-[16px] lg:text-[11px] bg-slate-950 text-white p-1 rounded leading-tight whitespace-pre-wrap border border-yellow-500 font-medium focus:outline-none no-drag"
                                       placeholder="目標を入力..."
                                     />
                                   ) : (
@@ -1580,6 +1608,7 @@
                                         fill="transparent"
                                         stroke={printEconomy ? "#cbd5e1" : "rgba(255, 255, 255, 0.15)"}
                                         strokeWidth="2.5"
+                                        className="no-print"
                                       />
                                       <circle
                                         cx="12"
