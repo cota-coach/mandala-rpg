@@ -248,7 +248,7 @@
           2: "地域コミュニティ活性化と\n公益への持続的還元",
           3: "マインドフルネスの確立と\n揺るぎない自己信頼",
           5: "ウェルネスの追求と\nベストパフォーマンス維持",
-          6: "日常にパッションを取り入れ\n豊かな生き方を體現する",
+          6: "日常にパッションを取り入れ\n豊かな生き方を体現する",
           7: "持続可能な資産構築と\n公益還元の基盤設計",
           8: "愛に満ちた家庭環境と\n子供への100%伴走サポート"
         },
@@ -407,17 +407,19 @@
         const width = window.innerWidth;
         const height = window.innerHeight;
         
-        // 実機モバイルか、タッチスクリーンを持つ中小型ディスプレイ（iPadを含む）かをより厳格に判定
+        // 実機モバイルか、タッチスクリーンを持つ中小型ディスプレイ（iPad含む）かをより厳格に判定
         const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         const hasTouchScreen = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
         
         const mobile = isMobileUA || (hasTouchScreen && width < 1024);
-        const landscape = mobile && height < 550 && width > height;
+        
+        // 【大改善】高さを最大限確保するため、高さ550px未満かつ横長の場合は、PCプレビュー含むすべての環境で「ランドスケープ（横置き隠蔽モード）」を完全適用！
+        const landscape = height < 550 && width > height;
 
-        setIsMobile(mobile);
+        setIsMobile(mobile || landscape);
         setIsLandscape(landscape);
 
-        // PC表示環境なら初期状態でサイドバーを開きっぱなし、モバイルなら閉じておく
+        // 横幅が広くて十分な高さがある通常PC環境の時のみ、初期状態でサイドバーを開きっぱなしにする
         if (!mobile && !landscape) {
           setIsSidebarOpen(true);
         } else {
@@ -945,51 +947,64 @@
             </div>
           )}
 
-          {/* 左側サイドバー（モバイル時は完全に z-50 かつ fixed、PC時はフレキシブルな通常配置としてスライド開閉） */}
-          <div className={`no-print transition-all duration-300 ease-in-out flex flex-col h-full bg-[#0d1424] border-r border-slate-800/80 
+          {/* 左側サイドバー：【大改造】h-screen（高さ100%）に固定、モバイル/横画面時はセクセフエリアをフル活用。横向きの表示バグを完全解消 */}
+          <div className={`no-print transition-all duration-300 ease-in-out flex flex-col h-screen bg-[#0d1424] border-r border-slate-800/80 
             ${isMobile || isLandscape 
-              ? 'fixed inset-y-0 left-0 w-80 shadow-[10px_0_40px_rgba(0,0,0,0.7)] z-50' 
+              ? 'fixed inset-y-0 left-0 w-80 shadow-[10px_0_50px_rgba(0,0,0,0.85)] z-50' 
               : (isSidebarOpen ? 'w-96 min-w-[384px]' : 'w-0 min-w-0 border-r-0 overflow-hidden')
             }
-            ${(isMobile || isLandscape) && !isSidebarOpen ? '-translate-x-full' : 'translate-x-0'}
-            ${(!isMobile && !isLandscape) && !isSidebarOpen ? '-translate-x-full pointer-events-none' : 'translate-x-0'}
+            ${!isSidebarOpen ? '-translate-x-full' : 'translate-x-0'}
             ${fullPrintMode ? 'hidden' : ''}
           `}>
             
-            {/* パネルヘッダー */}
-            <div className="p-5 border-b border-slate-800/80 flex flex-col gap-3">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 flex-grow">
-                  <i className="fa-solid fa-gem text-yellow-500 text-xl"></i>
-                  <input
-                    type="text"
-                    value={projectName}
-                    onChange={(e) => setProjectName(e.target.value)}
-                    className="bg-transparent font-bold text-lg text-slate-100 focus:outline-none border-b border-transparent focus:border-yellow-500/50 w-full px-1"
-                    placeholder="プロジェクト名"
-                  />
+            {/* 固定ヘッダー（最上部に常に極小サイズで固定。プロジェクト名と閉じるボタンだけを置くことでスクロール領域を最大化） */}
+            <div className="p-4 border-b border-slate-800/80 flex items-center justify-between gap-2 bg-[#0a0f1c] shrink-0">
+              <div className="flex items-center gap-2 flex-grow">
+                <i className="fa-solid fa-gem text-yellow-500 text-base"></i>
+                <input
+                  type="text"
+                  value={projectName}
+                  onChange={(e) => setProjectName(e.target.value)}
+                  className="bg-transparent font-black text-sm text-slate-100 focus:outline-none border-b border-transparent focus:border-yellow-500/50 w-full px-1 py-0.5"
+                  placeholder="プロジェクト名"
+                />
+              </div>
+              <button
+                onClick={() => setIsSidebarOpen(false)}
+                className="text-slate-400 hover:text-red-400 p-2 rounded-lg hover:bg-slate-800/50 transition-colors no-drag shrink-0 text-xs font-bold flex items-center gap-1"
+                title="サイドバーを隠す"
+              >
+                <span>閉じる</span>
+                <i className="fa-solid fa-chevron-left text-[10px]"></i>
+              </button>
+            </div>
+
+            {/* 【大改造】超広大・統合シングルスクロールエリア（残り高さすべて。モバイル横置きでもスクロールが詰まらず最下部まで100%滑らかに届きます） */}
+            <div className="flex-grow overflow-y-auto p-4 space-y-4 no-scrollbar bg-[#0d1424]">
+              
+              {/* 1. 大目標進捗インジケーター（スクロールの一部にして高さを節約） */}
+              <div className="bg-slate-900/90 p-3.5 rounded-xl border border-slate-800/60">
+                <div className="flex justify-between items-center text-[10px] mb-1.5">
+                  <span className="text-slate-400 font-bold">最中心大目標ランク</span>
+                  <span className={`font-bold px-2 py-0.5 rounded ${currentRank.bg} ${currentRank.color} text-[9px]`}>{currentRank.title}</span>
                 </div>
-                {/* サイドバーを隠すトグル（PC・モバイル全対応） */}
-                <button
-                  onClick={() => setIsSidebarOpen(false)}
-                  className="text-slate-400 hover:text-red-400 p-1.5 rounded-lg hover:bg-slate-800/50 transition-colors no-drag"
-                  title="サイドバーを隠す"
-                >
-                  <i className="fa-solid fa-chevron-left"></i>
-                </button>
+                <div className="flex items-center gap-3">
+                  <div className="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-700/50">
+                    <div 
+                      className="bg-gradient-to-r from-amber-500 via-yellow-400 to-cyan-400 h-full rounded-full transition-all duration-500"
+                      style={{ width: `${cells?.[4]?.[4]?.level || 0}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-xs font-black text-yellow-400 min-w-[38px] text-right font-orbitron">Lv.{cells?.[4]?.[4]?.level || 0}</span>
+                </div>
               </div>
 
-              {/* モバイル表示時またはランドスケープ時のみ設定をインクルード（ヘッダーから移植した全機能がここから完全に操作できます） */}
+              {/* 2. モバイル実機・または横画面専用の設定パネル（ヘッダーから引きずり下ろしてスクロールエリアに同乗！） */}
               {(isMobile || isLandscape) && (
-                <div className="bg-slate-950 p-3 rounded-xl border border-slate-800/80 space-y-2.5 mt-1 text-[11px] no-drag">
-                  <div className="flex justify-between items-center text-slate-400 font-bold border-b border-slate-900 pb-1.5 mb-1.5">
-                    <span>📱 モバイル設定</span>
-                    <button 
-                      onClick={() => setIsSidebarOpen(false)} 
-                      className="text-red-400 hover:text-red-300 font-bold"
-                    >
-                      閉じる
-                    </button>
+                <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800/80 space-y-3 text-[11px] no-drag">
+                  <div className="text-slate-400 font-bold border-b border-slate-900 pb-1.5 flex items-center gap-1.5">
+                    <i className="fa-solid fa-sliders text-cyan-400"></i>
+                    <span>モバイル設定・操作</span>
                   </div>
                   
                   {/* インク節約 */}
@@ -1006,12 +1021,12 @@
                     </button>
                   </div>
 
-                  {/* フィット ＆ 印刷 */}
+                  {/* 画面にフィット ＆ 印刷 */}
                   <div className="grid grid-cols-2 gap-2 mt-1">
                     <button
                       onClick={() => {
                         fitToScreen();
-                        setIsSidebarOpen(false);
+                        setIsSidebarOpen(false); // 利便性のために閉じます
                       }}
                       className="bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 py-1.5 rounded text-[10px] font-bold transition-all flex items-center justify-center gap-1.5"
                     >
@@ -1027,46 +1042,27 @@
                     </button>
                   </div>
 
-                  {/* ズーム */}
-                  <div className="flex items-center justify-between text-slate-300 border-t border-slate-900 pt-2">
+                  {/* ズーム調節スライダー */}
+                  <div className="flex items-center justify-between text-slate-300 border-t border-slate-900 pt-2.5">
                     <span>手動ズーム調節</span>
                     <div className="flex items-center gap-1.5 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-850">
-                      <button onClick={() => changeScaleStep(-0.1)} className="w-5 h-5 rounded bg-slate-800 flex items-center justify-center font-bold">-</button>
+                      <button onClick={() => changeScaleStep(-0.05)} className="w-5.5 h-5.5 rounded bg-slate-800 flex items-center justify-center font-bold text-xs">-</button>
                       <span className="font-mono text-[10px] min-w-[32px] text-center">{Math.round(scale * 100)}%</span>
-                      <button onClick={() => changeScaleStep(0.1)} className="w-5 h-5 rounded bg-slate-800 flex items-center justify-center font-bold">+</button>
+                      <button onClick={() => changeScaleStep(0.05)} className="w-5.5 h-5.5 rounded bg-slate-800 flex items-center justify-center font-bold text-xs">+</button>
                     </div>
                   </div>
                 </div>
               )}
-              
-              {/* 大目標進捗 */}
-              <div className="bg-slate-900/90 p-3 rounded-xl border border-slate-800/60">
-                <div className="flex justify-between items-center text-[10px] mb-1.5">
-                  <span className="text-slate-400 font-bold">最中心大目標ランク</span>
-                  <span className={`font-bold px-2 py-0.5 rounded ${currentRank.bg} ${currentRank.color} text-[9px]`}>{currentRank.title}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-700/50">
-                    <div 
-                      className="bg-gradient-to-r from-amber-500 via-yellow-400 to-cyan-400 h-full rounded-full transition-all duration-500"
-                      style={{ width: `${cells?.[4]?.[4]?.level || 0}%` }}
-                    ></div>
-                  </div>
-                  <span className="text-sm font-black text-yellow-400 min-w-[42px] text-right font-orbitron">Lv.{cells?.[4]?.[4]?.level || 0}</span>
-                </div>
-              </div>
-            </div>
 
-            {/* 詳細編集エリア */}
-            <div className="flex-grow overflow-y-auto p-5 space-y-4 no-scrollbar">
+              {/* 3. マス目標編集パネル */}
               <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800/80">
                 <div className="flex justify-between items-start mb-3">
                   <div className="w-2/3">
-                    <span className="text-[9px] text-slate-400 font-bold tracking-wider uppercase bg-slate-800 px-2 py-0.5 rounded">
+                    <span className="text-[9px] text-slate-400 font-bold tracking-wider uppercase bg-slate-850 px-2 py-0.5 rounded">
                       BLOCK {selectedCell.b + 1} - CELL {selectedCell.c + 1}
                     </span>
                     <h3 className="text-xs font-black text-slate-200 mt-2 flex items-center gap-2 truncate">
-                      <i className={`fa-solid ${selectedCell.b === 4 ? 'fa-crown' : 'fa-compass'} text-slate-400`}></i>
+                      <i className={`fa-solid ${selectedCell.b === 4 ? 'fa-crown text-yellow-500' : 'fa-compass text-cyan-400'}`}></i>
                       {blockNames[selectedCell.b] || ""}
                     </h3>
                   </div>
@@ -1083,7 +1079,7 @@
                     value={currentCellData.text}
                     onChange={(e) => updateCellData(selectedCell.b, selectedCell.c, { text: e.target.value })}
                     rows={3}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-yellow-500 font-medium whitespace-pre-wrap leading-relaxed"
+                    className="w-full bg-slate-950 border border-slate-800/80 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-yellow-500 font-medium whitespace-pre-wrap leading-relaxed"
                     placeholder="ここにマスの行動計画や目標を入力してください..."
                   />
                 </div>
@@ -1141,7 +1137,7 @@
                 </div>
               </div>
 
-              {/* メモ書き */}
+              {/* 4. メモ書きログ */}
               <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800/80 space-y-2">
                 <label className="text-[10px] text-slate-400 font-bold block flex items-center gap-1.5">
                   <i className="fa-solid fa-pen-nib text-cyan-400"></i>
@@ -1156,7 +1152,7 @@
                 />
               </div>
 
-              {/* バランスホイール・調和診断アナライザー */}
+              {/* 5. バランスホイール・調和診断アナライザー */}
               <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800/80 space-y-3">
                 <span className="text-[10px] text-slate-400 font-bold block flex items-center gap-1.5 border-b border-slate-800/60 pb-1.5">
                   <i className="fa-solid fa-chart-pie text-emerald-400"></i>
@@ -1193,48 +1189,53 @@
                   </p>
                 </div>
               </div>
-            </div>
 
-            {/* システムバックアップ・ファクトリー */}
-            <div className="p-4 border-t border-slate-800 bg-slate-950/80 space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={exportData}
-                  className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all border border-slate-700"
-                >
-                  <i className="fa-solid fa-file-export"></i>
-                  バックアップ
-                </button>
-                <label className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all border border-slate-700 cursor-pointer text-center">
-                  <i className="fa-solid fa-file-import"></i>
-                  復元ロード
-                  <input type="file" accept=".json" onChange={importData} className="hidden" />
-                </label>
+              {/* 6. システム管理ボタン集（フッターからスクロールの一部に移動させ、画面を100%活用！） */}
+              <div className="bg-slate-950/50 p-3.5 rounded-xl border border-slate-850 space-y-2.5">
+                <div className="text-[9px] text-slate-400 font-bold tracking-widest flex items-center gap-1">
+                  <i className="fa-solid fa-database text-yellow-500"></i>
+                  データ管理・同期
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={exportData}
+                    className="bg-slate-900 hover:bg-slate-800 text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all border border-slate-800"
+                  >
+                    <i className="fa-solid fa-file-export"></i>
+                    バックアップ
+                  </button>
+                  <label className="bg-slate-900 hover:bg-slate-800 text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all border border-slate-800 cursor-pointer text-center">
+                    <i className="fa-solid fa-file-import"></i>
+                    復元ロード
+                    <input type="file" accept=".json" onChange={importData} className="hidden" />
+                  </label>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={handleClearAll}
+                    className="bg-slate-900 hover:bg-slate-850 border border-slate-850 text-slate-400 hover:text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all"
+                  >
+                    <i className="fa-solid fa-broom"></i>
+                    🧹 ゼロから白紙
+                  </button>
+                  <button
+                    onClick={handleFactoryReset}
+                    className="bg-red-950/40 hover:bg-red-900/50 border border-red-900/40 text-red-300 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all"
+                  >
+                    <i className="fa-solid fa-rotate-left"></i>
+                    デモ復元
+                  </button>
+                </div>
               </div>
-              
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={handleClearAll}
-                  className="bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-400 hover:text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all"
-                >
-                  <i className="fa-solid fa-broom"></i>
-                  🧹 ゼロから白紙
-                </button>
-                <button
-                  onClick={handleFactoryReset}
-                  className="bg-red-950/50 hover:bg-red-900/60 border border-red-900/60 text-red-300 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all"
-                >
-                  <i className="fa-solid fa-rotate-left"></i>
-                  デモ復元
-                </button>
-              </div>
+
             </div>
           </div>
 
           {/* 右側メインキャンバス */}
           <div className="flex-grow flex flex-col h-full overflow-hidden relative">
             
-            {/* 上部ヘッダー（モバイル実機・またはランドスケープ時のみ非表示にし、通常PC環境では100%完全常時表示） */}
+            {/* 上部ヘッダー（モバイル実機・または横長ランドスケープ時のみ非表示にし、通常PC環境では100%完全常時表示） */}
             <div className={`p-4 bg-[#0a0f1d] border-b border-slate-800 flex flex-wrap justify-between items-center gap-3 z-10 no-print 
               ${fullPrintMode || isMobile || isLandscape ? 'hidden' : ''}
             `}>
@@ -1329,7 +1330,7 @@
               </div>
             </div>
 
-            {/* PC・モバイル共通の「親指フローティング・開閉ボタン」（メニューは背後の z-40 に。スライドインするサイドバー z-50 の裏に綺麗に隠れます） */}
+            {/* PC・モバイル共通の「親指フローティング・開閉ボタン」 */}
             {!isSidebarOpen && (
               <button
                 onClick={(e) => {
