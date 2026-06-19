@@ -46,7 +46,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
 
-  <!-- FontAwesome Icons for Beautiful RPG Vibe -->
+  <!-- FontAwesome Icons for RPG Vibe -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <!-- React 18 & Babel standalone -->
@@ -62,14 +62,14 @@
       font-family: 'Noto Sans JP', sans-serif;
       user-select: none;
       -webkit-user-select: none;
-      touch-action: none; /* iOS Safariのピンチインズーム、オーバースクロール等の不要挙動を徹底ブロック */
+      touch-action: none; /* iOS Safariのズーム挙動を徹底ブロック */
     }
     
     .font-orbitron {
       font-family: 'Orbitron', sans-serif;
     }
     
-    /* マンダラ用のピクセルパーフェクト・絶対サイズ固定定義 */
+    /* マンダラ用の絶対サイズ固定定義 */
     .mandala-board-wrapper {
       width: 1722px !important;
       height: 1137px !important;
@@ -126,7 +126,7 @@
       scrollbar-width: none;
     }
 
-    /* 印刷用CSS (A3/A4横にスケーリング) */
+    /* 印刷用CSS */
     @media print {
       body {
         background: white !important;
@@ -152,7 +152,6 @@
 
   <div id="root" class="h-full w-full"></div>
 
-  <!-- React アプリケーション実装 -->
   <script type="text/babel">
     const { useState, useEffect, useRef, useMemo } = React;
 
@@ -207,7 +206,7 @@
       };
     };
 
-    // レベルランクの称号テキスト計算（ホイスティング・エラーを完全防止）
+    // レベルランクの称号テキスト計算
     const getRankTitle = (lvl) => {
       if (lvl === 0) return { title: "未開の種子", color: "text-slate-400", bg: "bg-slate-800" };
       if (lvl <= 30) return { title: "ブロンズ・開拓者", color: "text-amber-500", bg: "bg-amber-500/10" };
@@ -217,7 +216,7 @@
       return { title: "👑レジェンド・創造主", color: "text-yellow-300 animate-pulse", bg: "bg-gradient-to-r from-yellow-500/20 to-red-500/20" };
     };
 
-    // 初期セルのテンプレート生成 (コーチング・ライフプラン構成)
+    // 初期セルのテンプレート生成
     const createInitialCells = (clean = false) => {
       const cells = {};
       
@@ -230,7 +229,7 @@
         1: { // 仕事・キャリア
           4: "自律型組織 of 共創と\nビジネスの好循環",
           0: "ビジョン・ミッション再定義", 1: "新規プロジェクトのプロト", 2: "週1回の1on1ミーティング", 3: "権限移譲と自律サポート",
-          5: "業務自動化による効率化", 6: "戦略的パートナーシップ構築", 7: "顧客フィードバックの高速循環", 8: "リーダーシップ研修の開催"
+          5: "業務自動化による効率化", 6: "戦略的パートナーシップ構築", 7: "顧客フィードバック of 高速循環", 8: "リーダーシップ研修の開催"
         },
         2: { // 社会貢献・公益
           4: "地域コミュニティ活性化と\n公益への持続的還元",
@@ -245,7 +244,7 @@
         4: { // 人生の大目標
           4: "公益と利他を循環させ\n自律型リーダーの模範となる",
           0: "リベラルアーツと\nコーチングスキルの探求",
-          1: "自律型組織 of 共創と\nビジネスの好循環",
+          1: "自律型組織 of 共創と\nビジネス of 好循環",
           2: "地域コミュニティ活性化と\n公益への持続的還元",
           3: "マインドフルネスの確立と\n揺るぎない自己信頼",
           5: "ウェルネスの追求と\nベストパフォーマンス維持",
@@ -278,7 +277,6 @@
       for (let b = 0; b < 9; b++) {
         cells[b] = {};
         for (let c = 0; c < 9; c++) {
-          const isCore = b === 4 || c === 4;
           let initialText = "";
           if (!clean) {
             initialText = samples[b][c];
@@ -290,7 +288,7 @@
 
           cells[b][c] = {
             text: initialText,
-            level: 0, // すべて完全なレベル0からスタート
+            level: 0,
             memo: ""
           };
         }
@@ -299,13 +297,11 @@
     };
 
     function App() {
-      // 状態管理（データの読み込みエラー＆クラッシュをバリデーターで100%安全に防衛）
       const [cells, setCells] = useState(() => {
         try {
           const saved = localStorage.getItem("mandala_rpg_cells_v3");
           if (saved) {
             const parsed = JSON.parse(saved);
-            // 0から8のブロックおよびセル構造が100%整合しているか厳格チェック
             let isValid = true;
             for (let b = 0; b < 9; b++) {
               if (!parsed[b] || typeof parsed[b] !== 'object') {
@@ -321,7 +317,7 @@
             }
             if (isValid) return parsed;
           }
-        } catch (e) { console.error("cells restore fallback:", e); }
+        } catch (e) { console.error(e); }
         return createInitialCells();
       });
 
@@ -329,7 +325,6 @@
         return localStorage.getItem("mandala_rpg_project_name_v3") || "ライフキャリア・クロニクル";
       });
 
-      // 各ブロックのテーマタイトル名
       const [blockNames, setBlockNames] = useState(() => {
         try {
           const saved = localStorage.getItem("mandala_rpg_block_names_v3");
@@ -341,7 +336,6 @@
         return { ...DEFAULT_BLOCK_NAMES };
       });
 
-      // 各ブロックの色相 (0..8)
       const [blockHues, setBlockHues] = useState(() => {
         try {
           const saved = localStorage.getItem("mandala_rpg_block_hues_v3");
@@ -358,18 +352,15 @@
       const [selectedCell, setSelectedCell] = useState({ b: 4, c: 4 });
       const [zoomBlock, setZoomBlock] = useState(null); 
       
-      // レスポンシブ＆モバイル状態検知
       const [isMobile, setIsMobile] = useState(false);
       const [isLandscape, setIsLandscape] = useState(false);
       const [isSidebarOpen, setIsSidebarOpen] = useState(true);
       
-      // ビューポート位置＆ズームスケール
       const [isDragging, setIsDragging] = useState(false);
       const [scrollOffset, setScrollOffset] = useState({ x: 0, y: 0 });
       const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
       const [scale, setScale] = useState(0.5); 
       
-      // 印刷設定、インライン、パレット、カスタムダイアログ制御
       const [printEconomy, setPrintEconomy] = useState(false);
       const [fullPrintMode, setFullPrintMode] = useState(false);
       const [editingCell, setEditingCell] = useState(null); 
@@ -378,7 +369,6 @@
       const [editingBlockNameIdx, setEditingBlockNameIdx] = useState(null);
       const [tempBlockName, setTempBlockName] = useState("");
 
-      // カスタムダイアログ状態
       const [dialogState, setDialogState] = useState({ show: false, type: "", title: "", text: "", onConfirm: null });
       const [toastText, setToastText] = useState("");
 
@@ -386,14 +376,12 @@
       const isMoved = useRef(false);
       const boardContainerRef = useRef(null);
 
-      // マルチタッチピンチ用 Ref
       const touchStartDistRef = useRef(0);
       const touchStartScaleRef = useRef(1);
       const isPinchingRef = useRef(false);
       const touchStartOffsetRef = useRef({ x: 0, y: 0 });
       const touchStartCenterRef = useRef({ x: 0, y: 0 });
 
-      // 自動保存処理
       useEffect(() => {
         localStorage.setItem("mandala_rpg_cells_v3", JSON.stringify(cells));
       }, [cells]);
@@ -410,32 +398,31 @@
         localStorage.setItem("mandala_rpg_block_hues_v3", JSON.stringify(blockHues));
       }, [blockHues]);
 
-      // トースト通知関数
       const showToast = (msg) => {
         setToastText(msg);
         setTimeout(() => setToastText(""), 2500);
       };
 
-      // デバイス画面幅と傾き（ランドスケープ）を常時モニタリング
       const handleResizeAndOrientation = () => {
         const width = window.innerWidth;
         const height = window.innerHeight;
         
-        const mobile = width < 1024;
-        const landscape = height < 550 && width > height;
+        const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const hasTouchScreen = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        
+        const mobile = isMobileUA || (hasTouchScreen && width < 1024);
+        const landscape = mobile && height < 550 && width > height;
 
         setIsMobile(mobile);
         setIsLandscape(landscape);
 
-        // スマートレスポンシブ開閉：スマホ縦・ランドスケープ時はサイドバーを初期状態で閉じる
-        if (mobile || landscape) {
-          setIsSidebarOpen(false);
-        } else {
+        if (!mobile && !landscape) {
           setIsSidebarOpen(true);
+        } else {
+          setIsSidebarOpen(false);
         }
       };
 
-      // 画面ピッタリにフィットさせる超強力スケーリングシステム
       const fitToScreen = () => {
         if (!boardContainerRef.current) return;
         const containerWidth = boardContainerRef.current.clientWidth;
@@ -446,7 +433,7 @@
 
         const scaleX = containerWidth / boardW;
         const scaleY = containerHeight / boardH;
-        // モバイル縦・横画面に綺麗におさめるためのマージン
+        
         const marginFactor = isMobile ? 0.96 : 0.94;
         const bestScale = Math.min(scaleX, scaleY) * marginFactor;
 
@@ -459,7 +446,6 @@
         setScrollOffset({ x: offsetX, y: offsetY });
       };
 
-      // 初期化
       useEffect(() => {
         handleResizeAndOrientation();
         window.addEventListener("resize", handleResizeAndOrientation);
@@ -467,12 +453,10 @@
         return () => window.removeEventListener("resize", handleResizeAndOrientation);
       }, [zoomBlock]);
 
-      // サイドバーの開閉をトリガーした時、自動リフィットを掛ける
       useEffect(() => {
         setTimeout(fitToScreen, 150);
       }, [isSidebarOpen]);
 
-      // ホイールズームシステム
       useEffect(() => {
         const board = boardContainerRef.current;
         if (!board) return;
@@ -510,7 +494,6 @@
         };
       }, [scale, scrollOffset]);
 
-      // iOS Safari等のピンチインズーム衝突を100%解決するネイティブバインド
       useEffect(() => {
         const container = boardContainerRef.current;
         if (!container) return;
@@ -584,7 +567,6 @@
 
       const currentCellData = cells?.[selectedCell.b]?.[selectedCell.c] || { text: "", level: 0, memo: "" };
 
-      // ドラッグ・スワイプ処理
       const handleDragStart = (clientX, clientY, target) => {
         if (
           target.closest('.no-drag') || 
@@ -630,7 +612,6 @@
         setIsDragging(false);
       };
 
-      // ボタンからの10%ズーム
       const changeScaleStep = (delta) => {
         const container = boardContainerRef.current;
         if (!container) return;
@@ -650,7 +631,6 @@
         setScrollOffset({ x: nextOffsetX, y: nextOffsetY });
       };
 
-      // 1レベル刻みのリニア・カラーエボリューション
       const getCellColorAndStyle = (b, c, level) => {
         if (printEconomy) {
           if (b === 4 && c === 4) {
@@ -662,7 +642,6 @@
         const hue = blockHues[b] || 0;
 
         if (level === 0) {
-          // レベル0
           return {
             className: "border border-slate-800 text-slate-300 shadow-inner hover:border-slate-700/60",
             style: { background: `hsl(${hue}, 20%, 15%)` }
@@ -716,7 +695,6 @@
         return { className, style: bgStyle };
       };
 
-      // レベル自動連動ロールアップ＆シンクロ
       const updateCellData = (b, c, updates) => {
         setCells(prev => {
           const next = JSON.parse(JSON.stringify(prev));
@@ -737,7 +715,6 @@
             next[c][4].memo = next[4][c].memo;
           }
 
-          // 周辺の平均値を中目標へ吸い上げる
           for (let i = 0; i < 9; i++) {
             if (i === 4) continue;
             let sum = 0;
@@ -755,7 +732,6 @@
             next[4][i].level = avg;
           }
 
-          // 大目標（最中心）の平均
           let centerSum = 0;
           for (let i = 0; i < 9; i++) {
             if (i === 4) continue;
@@ -792,7 +768,6 @@
         updateCellData(b, c, { level: nextLvl });
       };
 
-      // テキスト編集開始
       const startInlineEdit = (b, c, e) => {
         if (e) e.stopPropagation();
         setEditingCell({ b, c });
@@ -806,7 +781,6 @@
         }
       };
 
-      // 領域名（ブロックタイトル）編集開始
       const startBlockNameEdit = (idx, e) => {
         if (e) e.stopPropagation();
         setEditingBlockNameIdx(idx);
@@ -820,7 +794,6 @@
         showToast(`領域名を「${tempBlockName}」に変更しました`);
       };
 
-      // システムポップアップの自律構成
       const triggerSystemConfirm = (type, title, text, onConfirm) => {
         setDialogState({ show: true, type, title, text, onConfirm });
       };
@@ -852,14 +825,12 @@
           () => {
             const fresh = createInitialCells(true);
             setCells(fresh);
-            // ニュートラルタイトルに変更
             const neutralNames = {};
             for (let i = 0; i < 9; i++) {
               if (i === 4) neutralNames[i] = "5. 人生の大目標";
               else neutralNames[i] = `領域 ${i + 1}`;
             }
             setBlockNames(neutralNames);
-            // デフォルトトーン配置
             setBlockHues({ 0: 215, 1: 145, 2: 345, 3: 275, 4: 235, 5: 165, 6: 20, 7: 48, 8: 85 });
             setProjectName("マイ・ロードマップ");
             setSelectedCell({ b: 4, c: 4 });
@@ -905,13 +876,12 @@
         }
       };
 
-      // 8大ライフカテゴリーのリアルタイム平均調和解析
       const analyzedStats = useMemo(() => {
         const sectors = [];
         let totalAvg = 0;
         
         for (let i = 0; i < 9; i++) {
-          if (i === 4) continue; // 大目標は除く
+          if (i === 4) continue;
           let sum = 0;
           for (let j = 0; j < 9; j++) {
             if (j === 4) continue;
@@ -939,7 +909,7 @@
       return (
         <div className="flex h-full w-full overflow-hidden select-none relative bg-[#070a13]">
           
-          {/* 通知トーストポップアップ */}
+          {/* 通知トースト */}
           {toastText && (
             <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-slate-900 border-2 border-cyan-500/80 text-cyan-200 px-6 py-3 rounded-full text-xs font-bold shadow-[0_0_20px_rgba(6,182,212,0.5)] animate-bounce flex items-center gap-2 backdrop-blur">
               <i className="fa-solid fa-sparkles text-yellow-400"></i>
@@ -947,7 +917,7 @@
             </div>
           )}
 
-          {/* カスタムシステムダイアログモーダル (iframe制限を100%回避) */}
+          {/* カスタムシステムダイアログ */}
           {dialogState.show && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in no-drag">
               <div className="w-full max-w-md bg-slate-900 border-2 border-slate-800 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
@@ -977,11 +947,11 @@
             </div>
           )}
 
-          {/* 左側サイドバー（モバイル時はスライド式オーバーレイとして振る舞う） */}
-          <div className={`no-print transition-all duration-300 ease-in-out z-40 flex flex-col h-full bg-[#0d1424] border-r border-slate-800/80 
-            ${isMobile ? 'fixed inset-y-0 left-0 w-80 shadow-2xl' : 'w-96 min-w-[384px]'}
-            ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:hidden'}
-            ${fullPrintMode || isLandscape ? 'hidden' : ''}
+          {/* 左側サイドバー */}
+          <div className={`no-print transition-all duration-300 ease-in-out flex flex-col h-full bg-[#0d1424] border-r border-slate-800/80 
+            ${isMobile || isLandscape ? 'fixed inset-y-0 left-0 w-80 shadow-2xl z-45' : 'w-96 min-w-[384px]'}
+            ${(isMobile || isLandscape) && !isSidebarOpen ? '-translate-x-full' : 'translate-x-0'}
+            ${fullPrintMode ? 'hidden' : ''}
           `}>
             
             {/* パネルヘッダー */}
@@ -996,6 +966,66 @@
                   placeholder="プロジェクト名"
                 />
               </div>
+
+              {/* モバイル実機での表示時のみ設定をインクルード */}
+              {(isMobile || isLandscape) && (
+                <div className="bg-slate-950 p-3 rounded-xl border border-slate-800/80 space-y-2.5 mt-1 text-[11px] no-drag">
+                  <div className="flex justify-between items-center text-slate-400 font-bold border-b border-slate-900 pb-1.5 mb-1.5">
+                    <span>📱 モバイル設定</span>
+                    <button 
+                      onClick={() => setIsSidebarOpen(false)} 
+                      className="text-red-400 hover:text-red-300 font-bold"
+                    >
+                      閉じる
+                    </button>
+                  </div>
+                  
+                  {/* インク節約 */}
+                  <div className="flex justify-between items-center text-slate-300">
+                    <span>インク節約印刷モード</span>
+                    <button
+                      onClick={() => setPrintEconomy(!printEconomy)}
+                      className={`px-3 py-1 rounded font-bold border text-[10px] transition-all flex items-center gap-1 ${
+                        printEconomy ? 'bg-slate-200 text-slate-950 border-white' : 'bg-slate-900 text-slate-300 border-slate-800'
+                      }`}
+                    >
+                      <i className={`fa-solid ${printEconomy ? 'fa-toggle-on text-emerald-600' : 'fa-toggle-off'}`}></i>
+                      <span>{printEconomy ? "有効" : "無効"}</span>
+                    </button>
+                  </div>
+
+                  {/* フィット ＆ 印刷 */}
+                  <div className="grid grid-cols-2 gap-2 mt-1">
+                    <button
+                      onClick={() => {
+                        fitToScreen();
+                        setIsSidebarOpen(false);
+                      }}
+                      className="bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 py-1.5 rounded text-[10px] font-bold transition-all flex items-center justify-center gap-1.5"
+                    >
+                      <i className="fa-solid fa-expand text-cyan-400"></i>
+                      <span>画面にフィット</span>
+                    </button>
+                    <button
+                      onClick={() => setFullPrintMode(true)}
+                      className="bg-cyan-600 hover:bg-cyan-500 text-white py-1.5 rounded text-[10px] font-bold transition-all flex items-center justify-center gap-1.5 shadow"
+                    >
+                      <i className="fa-solid fa-print"></i>
+                      <span>印刷プレビュー</span>
+                    </button>
+                  </div>
+
+                  {/* ズーム */}
+                  <div className="flex items-center justify-between text-slate-300 border-t border-slate-900 pt-2">
+                    <span>手動ズーム調節</span>
+                    <div className="flex items-center gap-1.5 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-850">
+                      <button onClick={() => changeScaleStep(-0.1)} className="w-5 h-5 rounded bg-slate-800 flex items-center justify-center font-bold">-</button>
+                      <span className="font-mono text-[10px] min-w-[32px] text-center">{Math.round(scale * 100)}%</span>
+                      <button onClick={() => changeScaleStep(0.1)} className="w-5 h-5 rounded bg-slate-800 flex items-center justify-center font-bold">+</button>
+                    </div>
+                  </div>
+                </div>
+              )}
               
               {/* 大目標進捗 */}
               <div className="bg-slate-900/90 p-3 rounded-xl border border-slate-800/60">
@@ -1139,7 +1169,7 @@
                   ))}
                 </div>
 
-                {/* コーチング・メッセージ */}
+                {/* コーチングアドバイス */}
                 <div className="mt-3 bg-slate-950/60 p-3 rounded-lg border border-slate-800/40 space-y-1.5">
                   <div className="text-[9px] text-slate-400 flex items-center gap-1 font-bold">
                     <i className="fa-solid fa-wand-magic-sparkles text-cyan-400"></i>
@@ -1192,9 +1222,9 @@
           {/* 右側メインキャンバス */}
           <div className="flex-grow flex flex-col h-full overflow-hidden relative">
             
-            {/* 上部ヘッダー（モバイル横画面時は完全非表示で空間をマンダラへ100%提供） */}
+            {/* 上部ヘッダー（モバイル実機・またはランドスケープ時のみ非表示にし、通常PC環境では100%完全常時表示） */}
             <div className={`p-4 bg-[#0a0f1d] border-b border-slate-800 flex flex-wrap justify-between items-center gap-3 z-10 no-print 
-              ${fullPrintMode || isLandscape ? 'hidden' : ''}
+              ${fullPrintMode || isMobile || isLandscape ? 'hidden' : ''}
             `}>
               <div className="flex items-center gap-3">
                 <h2 className="text-sm font-black text-yellow-400 flex items-center gap-1.5 tracking-wider uppercase font-orbitron">
@@ -1230,7 +1260,7 @@
                 </div>
               </div>
 
-              {/* ヘッダー右側調整類 */}
+              {/* ヘッダー右側調整類（PC専用） */}
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setPrintEconomy(!printEconomy)}
@@ -1287,35 +1317,32 @@
               </div>
             </div>
 
-            {/* スマホ・タブレット専用：片手でサクッと開く「親指ファースト開閉ボタン」（画面左下） */}
-            {isMobile && !isLandscape && (
+            {/* スマホ・タブレット実機専用：片手で開く「親指メニューボタン」 */}
+            {(isMobile || isLandscape) && (
               <button
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="fixed bottom-6 left-6 z-40 bg-slate-900/95 hover:bg-slate-850 text-white border border-slate-700/80 px-4 py-3 rounded-full shadow-2xl backdrop-blur flex items-center gap-2 active:scale-95 transition-all font-bold text-sm select-none no-print no-drag"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsSidebarOpen(!isSidebarOpen);
+                }}
+                className="fixed bottom-6 left-6 z-50 bg-slate-900/95 hover:bg-slate-850 text-white border border-slate-700/80 px-4 py-3.5 rounded-full shadow-2xl backdrop-blur flex items-center gap-2 active:scale-95 transition-all font-bold text-sm select-none no-print no-drag animate-fade-in"
               >
-                <i className={`fa-solid ${isSidebarOpen ? 'fa-xmark text-red-400' : 'fa-chart-bar text-emerald-400'}`}></i>
+                <i className={`fa-solid ${isSidebarOpen ? 'fa-xmark text-red-400' : 'fa-bars text-emerald-400'}`}></i>
                 <span>{isSidebarOpen ? "閉じる" : "📊 メニュー"}</span>
               </button>
             )}
 
-            {/* スマホ横向き（ランドスケープ）専用：完全に全画面固定された時のフローティングコントローラー */}
-            {isLandscape && (
-              <div className="fixed bottom-4 right-4 z-40 flex items-center gap-2 no-print no-drag">
-                <button
-                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                  className="bg-slate-900/90 hover:bg-slate-800 text-white border border-slate-700/80 p-3 rounded-full shadow-lg backdrop-blur"
-                  title="メニュー"
-                >
-                  <i className="fa-solid fa-chart-bar text-emerald-400"></i>
-                </button>
-                <button
-                  onClick={fitToScreen}
-                  className="bg-slate-900/90 hover:bg-slate-800 text-white border border-slate-700/80 p-3 rounded-full shadow-lg backdrop-blur"
-                  title="ジャストフィット"
-                >
-                  <i className="fa-solid fa-expand text-cyan-400"></i>
-                </button>
-              </div>
+            {/* モバイル実機専用：右下の「フィット」ボタン */}
+            {(isMobile || isLandscape) && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  fitToScreen();
+                }}
+                className="fixed bottom-6 right-6 z-50 bg-slate-900/95 hover:bg-slate-850 text-white border border-slate-700/80 p-3.5 rounded-full shadow-2xl backdrop-blur flex items-center justify-center active:scale-95 transition-all select-none no-print no-drag"
+                title="画面にフィット"
+              >
+                <i className="fa-solid fa-expand text-cyan-400 text-base"></i>
+              </button>
             )}
 
             {/* 全画面印刷モードコントロール */}
@@ -1352,13 +1379,12 @@
               onMouseUp={handleDragEnd}
               onMouseLeave={handleDragEnd}
               onClick={() => {
-                // サイドバーを閉じているときに他をクリックしたら閉じる（スマホ時のみ）
-                if (isMobile && isSidebarOpen) setIsSidebarOpen(false);
+                if ((isMobile || isLandscape) && isSidebarOpen) setIsSidebarOpen(false);
               }}
               className="flex-grow overflow-hidden relative bg-[#06080e] drag-canvas"
             >
               
-              {/* ドラッグ・拡大用スケールラッパー */}
+              {/* スケールラッパー */}
               <div
                 className="absolute transition-transform duration-100 origin-top-left"
                 style={{
@@ -1366,7 +1392,7 @@
                 }}
               >
                 
-                {/* 印刷・マンダラボード外枠 */}
+                {/* マンダラボード枠 */}
                 <div className={`print-area mandala-board-wrapper bg-[#0f1525]/60 rounded-3xl p-6 flex flex-wrap gap-5 justify-between relative shadow-[0_0_60px_rgba(0,0,0,0.6)] border border-slate-800/80 ${printEconomy ? 'bg-white shadow-none border-0' : ''}`}>
                   
                   {/* マンダラブロック（3x3 = 9個） */}
@@ -1377,9 +1403,7 @@
                     const isFocusTarget = zoomBlock === null || zoomBlock === bIndex;
                     if (!isFocusTarget) return null;
 
-                    // このブロックのパレットが開いているか
                     const isPaletteOpen = activePaletteBlock === bIndex;
-                    // このブロックのタイトルを編集中か
                     const isEditingBlockName = editingBlockNameIdx === bIndex;
 
                     return (
@@ -1393,7 +1417,7 @@
                           zoomBlock !== null ? 'scale-[1.8] origin-center z-40 mx-auto my-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 shadow-[0_0_50px_rgba(0,0,0,0.8)]' : ''
                         }`}
                       >
-                        {/* ブロックタイトル (ダブルクリックで自由に変身) */}
+                        {/* ブロックタイトル */}
                         <div className="text-[11px] font-black px-1 pb-1.5 border-b border-slate-800/40 flex items-center justify-between relative z-20">
                           <div className="flex items-center gap-1.5 max-w-[280px]">
                             {isEditingBlockName ? (
@@ -1410,14 +1434,13 @@
                               <span 
                                 onDoubleClick={(e) => startBlockNameEdit(bIndex, e)}
                                 className={`flex items-center gap-1 cursor-pointer hover:text-yellow-400 select-none ${printEconomy ? 'text-black' : 'text-slate-200'}`}
-                                title="ダブルクリックで領域名を自由に変更できます"
+                                title="ダブルクリックでタイトルを変更できます"
                               >
                                 <i className="fa-solid fa-pen-to-square text-[9px] text-slate-500 mr-0.5"></i>
                                 {blockNames[bIndex] || `領域 ${bIndex + 1}`}
                               </span>
                             )}
                             
-                            {/* カラーインディケーターボタン（20色パレット呼び出し） */}
                             {!printEconomy && (
                               <button
                                 onClick={(e) => {
@@ -1426,7 +1449,6 @@
                                 }}
                                 className="w-3.5 h-3.5 rounded-full border border-slate-600/80 hover:scale-110 active:scale-95 transition-all shadow no-drag"
                                 style={{ background: `hsl(${themeHue}, 80%, 40%)` }}
-                                title="領域のベースカラーを変更します"
                               />
                             )}
                           </div>
@@ -1435,7 +1457,7 @@
                             平均Lv.{blockAvgLv}
                           </span>
 
-                          {/* 20色プレミアムパレットのポップアップオーバーレイ */}
+                          {/* 20色プレミアムパレット */}
                           {isPaletteOpen && (
                             <div className="absolute top-7 left-1 bg-slate-900 border-2 border-slate-800 rounded-xl p-3 shadow-2xl z-50 w-72 grid grid-cols-5 gap-1.5 animate-fade-in no-drag">
                               <div className="col-span-5 flex justify-between items-center text-[9px] text-slate-400 font-bold mb-1 pb-1 border-b border-slate-800">
@@ -1455,7 +1477,6 @@
                                   className="h-8 rounded-lg border border-slate-700/60 transition-all hover:scale-105 flex flex-col items-center justify-center relative group"
                                   style={{ background: `hsl(${preset.hue}, 70%, 25%)` }}
                                 >
-                                  {/* ホバーチップ */}
                                   <span className="absolute bottom-full left-1/2 -translate-x-1/2 bg-slate-950 text-white text-[7px] py-0.5 px-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
                                     {preset.name}
                                   </span>
@@ -1474,8 +1495,6 @@
 
                             const isBlockCenter = cIndex === 4;
                             const isAbsoluteCenter = bIndex === 4 && cIndex === 4;
-
-                            // このセルが現在インラインテキスト編集中か
                             const isEditingThisCell = editingCell && editingCell.b === bIndex && editingCell.c === cIndex;
 
                             return (
@@ -1500,11 +1519,8 @@
                                 }`}
                                 style={styleData.style}
                               >
-                                {/* 1. 上部: ラベルパーツ */}
                                 <div className="flex items-center justify-between text-[8px] opacity-70 tracking-tight font-orbitron font-bold select-none h-3">
-                                  <span>
-                                    {bIndex + 1}-{cIndex + 1}
-                                  </span>
+                                  <span>{bIndex + 1}-{cIndex + 1}</span>
                                   <span>
                                     {isAbsoluteCenter 
                                       ? "⭐ 大目標" 
@@ -1514,7 +1530,6 @@
                                   </span>
                                 </div>
 
-                                {/* 2. 中央: 改行テキスト部 */}
                                 <div className="flex-grow flex items-center justify-center my-0.5 max-h-[52px] overflow-hidden">
                                   {isEditingThisCell ? (
                                     <textarea
@@ -1528,14 +1543,13 @@
                                     />
                                   ) : (
                                     <p className={`w-full text-center text-[10.5px] leading-tight font-bold tracking-normal whitespace-pre-wrap break-all line-clamp-3 select-none ${
-                                      printEconomy ? 'text-black' : (cellData.level > 90 ? 'text-slate-950' : 'text-slate-100')
+                                      printEconomy ? 'text-black' : (cellData.level > 90 ? 'text-slate-955' : 'text-slate-100')
                                     }`}>
                                       {cellData.text}
                                     </p>
                                   )}
                                 </div>
 
-                                {/* 3. 下部: ステータス・円環プログレスサークル */}
                                 <div className="flex items-center justify-between mt-0.5 h-5 select-none">
                                   <span className={`text-[10px] font-black font-orbitron tracking-tight ${
                                     printEconomy ? 'text-black' : (cellData.level > 90 ? 'text-slate-955' : 'text-yellow-400')
@@ -1575,42 +1589,36 @@
                                   </div>
                                 </div>
 
-                                {/* クイックホバー・コントローラー（テキスト編集中の邪魔防止のために編集中は100%非表示） */}
+                                {/* クイックホバー・コントローラー */}
                                 {!isBlockCenter && !printEconomy && !isEditingThisCell && (
                                   <div className="absolute inset-x-0 bottom-0 top-0 opacity-0 hover:opacity-100 bg-slate-950/90 backdrop-blur-sm transition-opacity duration-150 flex items-center justify-between px-2.5 z-10 rounded-xl no-drag">
-                                    {/* 1. レベルダウン */}
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         adjustLevel(bIndex, cIndex, -1);
                                       }}
                                       className="w-7 h-7 rounded-full bg-slate-800 hover:bg-red-600 hover:scale-105 active:scale-95 text-white font-bold flex items-center justify-center transition-all border border-slate-700"
-                                      title="レベルを下げる"
                                     >
                                       <i className="fa-solid fa-minus text-[10px]"></i>
                                     </button>
                                     
-                                    {/* 2. クイック編集 */}
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         startInlineEdit(bIndex, cIndex, e);
                                       }}
                                       className="flex flex-col items-center justify-center text-slate-300 hover:text-yellow-400 transition-colors py-1 px-2 rounded-lg hover:bg-slate-850 border border-transparent hover:border-slate-700"
-                                      title="このセルを直接編集します"
                                     >
                                       <i className="fa-solid fa-pen-to-square text-xs mb-0.5"></i>
                                       <span className="text-[7px] font-bold tracking-wider leading-none">EDIT</span>
                                     </button>
 
-                                    {/* 3. レベルアップ */}
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         adjustLevel(bIndex, cIndex, 1);
                                       }}
                                       className="w-7 h-7 rounded-full bg-slate-800 hover:bg-emerald-600 hover:scale-105 active:scale-95 text-white font-bold flex items-center justify-center transition-all border border-slate-700"
-                                      title="レベルを上げる"
                                     >
                                       <i className="fa-solid fa-plus text-[10px]"></i>
                                     </button>
