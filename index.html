@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>プレミアム・マンダラ・スプレッドシート (RPG決定版)</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bronze: {
+              DEFAULT: '#b25e2e',
+              light: '#d99066',
+            },
+            gold: {
+              DEFAULT: '#d4af37',
+              light: '#f3e5ab',
+            },
+            platinum: {
+              DEFAULT: '#e5e4e2',
+              light: '#f4f3f2',
+            }
+          },
+          animation: {
+            'spin-slow': 'spin 12s linear infinite',
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts (Noto Sans JP & Orbitron) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome Icons for Beautiful RPG Vibe -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- React 18 & Babel standalone -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js" crossorigin="anonymous"></script>
+
+  <!-- Canvas Confetti for Level 100 Celebrations -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none; /* ブラウザ標準のピンチズーム・バウンススクロールを無効にしてアプリ内挙動を保証 */
+    }
+    
+    .font-orbitron {
+      font-family: 'Orbitron', sans-serif;
+    }
+    
+    /* マンダラ用のピクセルパーフェクト・絶対サイズ固定定義 */
+    .mandala-board-wrapper {
+      width: 1722px !important;
+      height: 1137px !important;
+      min-width: 1722px !important;
+      min-height: 1137px !important;
+      max-width: 1722px !important;
+      max-height: 1137px !important;
+    }
+
+    .mandala-block-wrapper {
+      width: 542px !important;
+      height: 347px !important;
+      min-width: 542px !important;
+      min-height: 347px !important;
+      max-width: 542px !important;
+      max-height: 347px !important;
+    }
+
+    .mandala-cell {
+      width: 170px !important;
+      height: 105px !important;
+      min-width: 170px !important;
+      min-height: 105px !important;
+      max-width: 170px !important;
+      max-height: 105px !important;
+      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s;
+    }
+
+    /* レジェンドオーロラアニメーション */
+    @keyframes aurora {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .animate-aurora {
+      background-size: 200% 200% !important;
+      animation: aurora 6s ease infinite !important;
+    }
+
+    /* ドラッグスクロール用カーソル */
+    .drag-canvas {
+      cursor: grab;
+    }
+    .drag-canvas:active {
+      cursor: grabbing;
+    }
+
+    /* スクロールバーの非表示 */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* 印刷用CSS (A3/A4横にスケーリング) */
+    @media print {
+      body {
+        background: white !important;
+        color: black !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100% !important;
+        height: auto !important;
+        transform-origin: top left;
+        page-break-after: avoid;
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body class="bg-[#0b0f19] text-slate-100 overflow-hidden h-screen w-screen">
+
+  <div id="root" class="h-full w-full"></div>
+
+  <!-- React アプリケーション実装 -->
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useMemo } = React;
+
+    // 20の厳選ダークパレット
+    const DARK_PALETTE_20 = [
+      { id: "burgundy-red", hue: 345, s: 45, l: 17, name: "バーガンディレッド (情熱)", labelColor: "bg-rose-900" },
+      { id: "dark-terracotta", hue: 10, s: 40, l: 18, name: "ダークテラコッタ (大地)", labelColor: "bg-red-950" },
+      { id: "dark-chocolate", hue: 15, s: 35, l: 18, name: "ダークショコラ (静寂)", labelColor: "bg-amber-950" },
+      { id: "amber-ocher", hue: 32, s: 45, l: 17, name: "アンバーオーカー (ライフワーク)", labelColor: "bg-amber-900" },
+      { id: "olive-mustard", hue: 50, s: 40, l: 16, name: "オリーブマスタード (実り)", labelColor: "bg-yellow-950" },
+      
+      { id: "moss-green", hue: 85, s: 35, l: 17, name: "モスグリーン (自然)", labelColor: "bg-lime-950" },
+      { id: "deep-malachite", hue: 155, s: 40, l: 17, name: "マカライトエメラルド (開拓)", labelColor: "bg-green-900" },
+      { id: "forest-green", hue: 135, s: 40, l: 16, name: "フォレストグリーン (健康)", labelColor: "bg-emerald-900" },
+      { id: "cobalt-teal", hue: 180, s: 45, l: 17, name: "コバルトティール (共創)", labelColor: "bg-teal-900" },
+      { id: "cerulean-blue", hue: 195, s: 45, l: 18, name: "セルリアンブルー (広大)", labelColor: "bg-cyan-900" },
+      
+      { id: "deep-blue", hue: 215, s: 45, l: 18, name: "ディープオーシャン (知性)", labelColor: "bg-blue-900" },
+      { id: "midnight-indigo", hue: 240, s: 35, l: 18, name: "ミッドナイトブルー (探求)", labelColor: "bg-indigo-950" },
+      { id: "royal-violet", hue: 260, s: 40, l: 18, name: "ロイヤルバイオレット (自律)", labelColor: "bg-indigo-900" },
+      { id: "magenta-purple", hue: 295, s: 40, l: 18, name: "マジェンタパープル (精神)", labelColor: "bg-fuchsia-950" },
+      { id: "orchid-purple", hue: 315, s: 40, l: 18, name: "オーキッドパープル (高貴)", labelColor: "bg-purple-950" },
+      
+      { id: "rose-mauve", hue: 325, s: 38, l: 18, name: "ローズモーブ (家族愛)", labelColor: "bg-pink-900" },
+      { id: "slate-charcoal", hue: 220, s: 15, l: 18, name: "スレートチャコール (洗練)", labelColor: "bg-slate-800" },
+      { id: "khaki-grey", hue: 70, s: 15, l: 18, name: "カーキグレー (沈黙)", labelColor: "bg-stone-800" },
+      { id: "platinum-dust", hue: 200, s: 20, l: 20, name: "プラチナダスト (調和)", labelColor: "bg-zinc-800" },
+      { id: "ebony-shadow", hue: 240, s: 10, l: 15, name: "エボニーシャドウ (深淵)", labelColor: "bg-gray-900" }
+    ];
+
+    // デフォルトの各ブロックのテーマ設定
+    const DEFAULT_BLOCK_THEMES = {
+      0: { name: "知性・学習", hue: 165, icon: "fa-brain", desc: "読書・資格・新しいスキルの習得" },
+      1: { name: "仕事・キャリア", hue: 205, icon: "fa-briefcase", desc: "本業・プロジェクト・キャリアアップ" },
+      2: { name: "社会貢献・公益", hue: 190, icon: "fa-hands-helping", desc: "人脈・コミュニティ・利他活動" },
+      3: { name: "心・精神性", hue: 275, icon: "fa-feather-alt", desc: "メンタルケア・自律・瞑想・信念" },
+      4: { name: "人生の大目標", hue: 345, icon: "fa-crown", desc: "すべての中心となる大いなるビジョン" },
+      5: { name: "健康・身体", hue: 105, icon: "fa-heartbeat", desc: "運動・睡眠・食事・ウェルネス" },
+      6: { name: "趣味・ライフワーク", hue: 35, icon: "fa-gamepad", desc: "旅行・創作・日常のパッション" },
+      7: { name: "財産・資産形成", hue: 48, icon: "fa-coins", desc: "投資・貯蓄・公益への還元原資" },
+      8: { name: "家族・パートナー", hue: 325, icon: "fa-home", desc: "家庭環境・夫婦・子どもの伴走サポート" }
+    };
+
+    // 初期サンプルコーチングデータの生成
+    const createInitialCells = () => {
+      const cells = {};
+      
+      const samples = {
+        0: { // 知性・学習
+          4: "リベラルアーツと\nコーチングスキルの探求",
+          0: "毎月4冊 of 読書習慣", 1: "プロコーチ資格の取得", 2: "システム思考の勉強", 3: "哲学・歴史書を読み解く",
+          5: "言語学習のデイリー継続", 6: "メンターとの定期セッション", 7: "学んだ知見の図解・発信", 8: "デイリージャーナルの記入"
+        },
+        1: { // 仕事・キャリア
+          4: "自律型組織 of 共創と\nビジネス of 好循環",
+          0: "ビジョン・ミッション再定義", 1: "新規プロジェクトのプロト", 2: "週1回の1on1ミーティング", 3: "権限移譲と自律サポート",
+          5: "業務自動化による効率化", 6: "戦略的パートナーシップ構築", 7: "顧客フィードバック of 高速循環", 8: "リーダーシップ研修の開催"
+        },
+        2: { // 社会貢献・公益
+          4: "地域コミュニティ活性化と\n公益への持続的還元",
+          0: "地域公益活動への積極参画", 1: "自律コミュニティの立ち上げ", 2: "異業種ネットワーキング", 3: "若手世代の自立伴走メンター",
+          5: "活動拠点のスペース提供", 6: "チャリティプロジェクト企画", 7: "地元イベントの企画・協賛", 8: "社会的投資(ソーシャルビジネス)"
+        },
+        3: { // 心・精神性
+          4: "マインドフルネスの確立と\n揺るぎない自己信頼",
+          0: "朝20分の瞑想習慣", 1: "感謝日記の毎晩アウトプット", 2: "感情のセルフモニタリング", 3: "週末デジタルデトックス",
+          5: "心のノイズを削ぎ落とす", 6: "聖典や名著からの学び", 7: "自然と調和する時間の確保", 8: "自己一致 of ライフワーク"
+        },
+        4: { // 人生の大目標
+          4: "公益と利他を循環させ\n自律型リーダーの模範となる",
+          0: "リベラルアーツと\nコーチングスキルの探求",
+          1: "自律型組織 of 共創と\nビジネス of 好循環",
+          2: "地域コミュニティ活性化と\n公益への持続的還元",
+          3: "マインドフルネスの確立と\n揺るぎない自己信頼",
+          5: "ウェルネスの追求と\nベストパフォーマンス維持",
+          6: "日常にパッションを取り入れ\n豊かな生き方を体現する",
+          7: "持続可能な資産構築と\n公益還元の基盤設計",
+          8: "愛に満ちた家庭環境と\n子供への100%伴走サポート"
+        },
+        5: { // 健康・身体
+          4: "ウェルネスの追求と\nベストパフォーマンス維持",
+          0: "週3回のランニング＆ジム", 1: "毎日7時間の高品質睡眠", 2: "オーガニック・無添加食事", 3: "年1回の人間ドック徹底受診",
+          5: "ストレッチでの柔軟性維持", 6: "呼吸法と整いサウナ習慣", 7: "水分補給と健康ログ記録", 8: "体幹・姿勢リセット調整"
+        },
+        6: { // 趣味・ライフワーク
+          4: "日常にパッションを取り入れ\n豊かな生き方を体現する",
+          0: "カメラを手に週末散策", 1: "週末ソフトテニスのサポート", 2: "アートや音楽に触れる日", 3: "ブログ等での創作表現",
+          5: "未体験ジャンルへの挑戦", 6: "大自然でのキャンプ・冒険", 7: "気の合う仲間との語らい", 8: "感動アイデアノートの構築"
+        },
+        7: { // 財産・資産形成
+          4: "持続可能な資産構築と\n公益還元の基盤設計",
+          0: "インデックス投資の自動積立", 1: "ポートフォリオの定期精査", 2: "固定費・サブスクの最適化", 3: "新規収入源プロトタイピング",
+          5: "金融史と経済心理の勉強", 6: "家族用ファイナンシャルプラン", 7: "公益信託への拠出準備", 8: "資産状況 of 月次可視化"
+        },
+        8: { // 家族・パートナーシップ
+          4: "愛に満ちた家庭環境と\n子供への100%伴走サポート",
+          0: "感謝と労いの日常的な言葉掛け", 1: "週末の家族だんらんディナー", 2: "パートナーとの対話時間の確保", 3: "子供のテニス試合の全力応援",
+          5: "快適で整ったリビング空間", 6: "親族・両親への定期的連絡", 7: "記念日のパーソナルサプライズ", 8: "家族みんなで創る未来ビジョン"
+        }
+      };
+
+      for (let b = 0; b < 9; b++) {
+        cells[b] = {};
+        for (let c = 0; c < 9; c++) {
+          cells[b][c] = {
+            text: samples[b][c] || `アクション ${b}-${c}`,
+            level: 0, // すべて完全な「レベル0」
+            memo: ""
+          };
+        }
+      }
+      return cells;
+    };
+
+    // 完全にゼロからスタートするための白紙テンプレートセル
+    const createBlankCells = (themes) => {
+      const cells = {};
+      for (let b = 0; b < 9; b++) {
+        cells[b] = {};
+        for (let c = 0; c < 9; c++) {
+          let placeholder = "";
+          if (b === 4 && c === 4) {
+            placeholder = "【人生の大目標を設定】";
+          } else if (c === 4) {
+            placeholder = `【${themes[b].name}の中目標を設定】`;
+          } else {
+            placeholder = "";
+          }
+          cells[b][c] = {
+            text: placeholder,
+            level: 0,
+            memo: ""
+          };
+        }
+      }
+      return cells;
+    };
+
+    function App() {
+      // 状態管理
+      const [cells, setCells] = useState(() => {
+        try {
+          const saved = localStorage.getItem("mandala_rpg_cells_v4");
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed && parsed[4] && parsed[4][4]) return parsed;
+          }
+        } catch (e) {
+          console.error("Failed to load cells from localStorage:", e);
+        }
+        return createInitialCells();
+      });
+
+      const [projectName, setProjectName] = useState(() => {
+        return localStorage.getItem("mandala_rpg_project_name_v4") || "ライフキャリア・クロニクル";
+      });
+
+      // 各ブロックのテーマカラー色相設定
+      const [blockHues, setBlockHues] = useState(() => {
+        try {
+          const savedHues = localStorage.getItem("mandala_rpg_block_hues_v4");
+          if (savedHues) return JSON.parse(savedHues);
+        } catch (e) {
+          console.error("Failed to load hues from localStorage:", e);
+        }
+        const defaultHues = {};
+        for (let key in DEFAULT_BLOCK_THEMES) {
+          defaultHues[key] = DEFAULT_BLOCK_THEMES[key].hue;
+        }
+        return defaultHues;
+      });
+
+      // 各ブロックのタイトル名（自律編集可能なバランスホイール）
+      const [blockThemes, setBlockThemes] = useState(() => {
+        try {
+          const savedThemes = localStorage.getItem("mandala_rpg_block_themes_v4");
+          if (savedThemes) {
+            const parsed = JSON.parse(savedThemes);
+            if (parsed && parsed[0] && parsed[0].name) return parsed;
+          }
+        } catch (e) {
+          console.error("Failed to load block themes:", e);
+        }
+        return DEFAULT_BLOCK_THEMES;
+      });
+
+      // ブロックタイトル（領域名）インライン編集用
+      const [editingThemeIndex, setEditingThemeIndex] = useState(null); // null or bIndex
+      const [themeInputText, setThemeInputText] = useState("");
+
+      const [activePaletteIndex, setActivePaletteIndex] = useState(null);
+      const [selectedCell, setSelectedCell] = useState({ b: 4, c: 4 });
+      const [zoomBlock, setZoomBlock] = useState(null); 
+      
+      const [isDragging, setIsDragging] = useState(false);
+      const [scrollOffset, setScrollOffset] = useState({ x: 0, y: 0 });
+      const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+      const [scale, setScale] = useState(0.5); 
+      
+      const [printEconomy, setPrintEconomy] = useState(false);
+      const [fullPrintMode, setFullPrintMode] = useState(false);
+
+      const [editingCell, setEditingCell] = useState(null); 
+      const [inlineText, setInlineText] = useState("");
+
+      const [confirmModal, setConfirmModal] = useState(null); // null | 'reset' | 'clear'
+      const [toast, setToast] = useState(null); // null | { text, type }
+
+      const dragStartPos = useRef({ x: 0, y: 0 });
+      const isMoved = useRef(false);
+      const boardContainerRef = useRef(null);
+
+      // マルチタッチ・ピンチズーム用
+      const touchStartDistRef = useRef(0);
+      const touchStartScaleRef = useRef(1);
+      const isPinchingRef = useRef(false);
+      const touchStartOffsetRef = useRef({ x: 0, y: 0 });
+      const touchStartCenterRef = useRef({ x: 0, y: 0 });
+
+      // 自動保存
+      useEffect(() => {
+        localStorage.setItem("mandala_rpg_cells_v4", JSON.stringify(cells));
+      }, [cells]);
+
+      useEffect(() => {
+        localStorage.setItem("mandala_rpg_project_name_v4", projectName);
+      }, [projectName]);
+
+      useEffect(() => {
+        localStorage.setItem("mandala_rpg_block_hues_v4", JSON.stringify(blockHues));
+      }, [blockHues]);
+
+      useEffect(() => {
+        localStorage.setItem("mandala_rpg_block_themes_v4", JSON.stringify(blockThemes));
+      }, [blockThemes]);
+
+      useEffect(() => {
+        const handleOutsideClick = (e) => {
+          if (!e.target.closest('.color-picker-container')) {
+            setActivePaletteIndex(null);
+          }
+        };
+        window.addEventListener('click', handleOutsideClick);
+        return () => window.removeEventListener('click', handleOutsideClick);
+      }, []);
+
+      useEffect(() => {
+        if (toast) {
+          const timer = setTimeout(() => setToast(null), 3500);
+          return () => clearTimeout(timer);
+        }
+      }, [toast]);
+
+      const showToast = (text, type = 'success') => {
+        setToast({ text, type });
+      };
+
+      // スマートスケーリングフィット
+      const fitToScreen = () => {
+        if (!boardContainerRef.current) return;
+        const containerWidth = boardContainerRef.current.clientWidth;
+        const containerHeight = boardContainerRef.current.clientHeight;
+        
+        const boardW = 1722;
+        const boardH = 1137;
+
+        const scaleX = containerWidth / boardW;
+        const scaleY = containerHeight / boardH;
+        const bestScale = Math.min(scaleX, scaleY) * 0.94;
+
+        const clampedScale = Math.max(0.15, Math.min(2.0, bestScale));
+        
+        const offsetX = (containerWidth - boardW * clampedScale) / 2;
+        const offsetY = (containerHeight - boardH * clampedScale) / 2;
+
+        setScale(clampedScale);
+        setScrollOffset({ x: offsetX, y: offsetY });
+      };
+
+      useEffect(() => {
+        setTimeout(fitToScreen, 150);
+        window.addEventListener("resize", fitToScreen);
+        return () => window.removeEventListener("resize", fitToScreen);
+      }, [zoomBlock]);
+
+      // マウスホイールズーム
+      useEffect(() => {
+        const board = boardContainerRef.current;
+        if (!board) return;
+
+        const handleWheel = (e) => {
+          e.preventDefault();
+          const zoomFactor = 1.08;
+          let nextScale = scale;
+          
+          if (e.deltaY < 0) {
+            nextScale = Math.min(2.0, scale * zoomFactor);
+          } else {
+            nextScale = Math.max(0.15, scale / zoomFactor);
+          }
+
+          if (nextScale === scale) return;
+
+          const rect = board.getBoundingClientRect();
+          const mouseX = e.clientX - rect.left;
+          const mouseY = e.clientY - rect.top;
+
+          const boardX = (mouseX - scrollOffset.x) / scale;
+          const boardY = (mouseY - scrollOffset.y) / scale;
+
+          const nextOffsetX = mouseX - boardX * nextScale;
+          const nextOffsetY = mouseY - boardY * nextScale;
+
+          setScale(nextScale);
+          setScrollOffset({ x: nextOffsetX, y: nextOffsetY });
+        };
+
+        board.addEventListener('wheel', handleWheel, { passive: false });
+        return () => {
+          board.removeEventListener('wheel', handleWheel);
+        };
+      }, [scale, scrollOffset]);
+
+      const currentCellData = cells[selectedCell.b][selectedCell.c];
+
+      // ドラッグ開始
+      const handleDragStart = (clientX, clientY, target) => {
+        if (
+          target.closest('.no-drag') || 
+          target.closest('.color-picker-container') ||
+          target.tagName === 'INPUT' || 
+          target.tagName === 'TEXTAREA' || 
+          target.tagName === 'SELECT' || 
+          target.tagName === 'BUTTON'
+        ) {
+          return;
+        }
+
+        setIsDragging(true);
+        isMoved.current = false;
+        dragStartPos.current = { x: clientX, y: clientY };
+        setDragStart({ x: clientX - scrollOffset.x, y: clientY - scrollOffset.y });
+      };
+
+      // ドラッグ移動中
+      const handleDragMove = (clientX, clientY) => {
+        if (!isDragging) return;
+        
+        const dx = Math.abs(clientX - dragStartPos.current.x);
+        const dy = Math.abs(clientY - dragStartPos.current.y);
+        
+        if (dx > 4 || dy > 4) {
+          isMoved.current = true;
+        }
+
+        setScrollOffset({
+          x: clientX - dragStart.x,
+          y: clientY - dragStart.y
+        });
+      };
+
+      const handleDragEnd = () => {
+        setIsDragging(false);
+      };
+
+      const onMouseDown = (e) => {
+        handleDragStart(e.clientX, e.clientY, e.target);
+      };
+
+      const onMouseMove = (e) => {
+        handleDragMove(e.clientX, e.clientY);
+      };
+
+      // タッチイベント関係
+      const onTouchStart = (e) => {
+        if (e.touches.length === 2) {
+          isPinchingRef.current = true;
+          setIsDragging(false);
+
+          const dist = getDistance(e.touches[0], e.touches[1]);
+          touchStartDistRef.current = dist;
+          touchStartScaleRef.current = scale;
+          
+          const center = getCenter(e.touches[0], e.touches[1]);
+          touchStartCenterRef.current = center;
+          touchStartOffsetRef.current = { ...scrollOffset };
+        } else if (e.touches.length === 1 && !isPinchingRef.current) {
+          const touch = e.touches[0];
+          handleDragStart(touch.clientX, touch.clientY, e.target);
+        }
+      };
+
+      const onTouchMove = (e) => {
+        if (e.touches.length === 2 && isPinchingRef.current) {
+          e.preventDefault();
+          const dist = getDistance(e.touches[0], e.touches[1]);
+          const currentScale = touchStartScaleRef.current * (dist / touchStartDistRef.current);
+          const clampedScale = Math.max(0.15, Math.min(2.0, currentScale));
+
+          const container = boardContainerRef.current;
+          if (!container) return;
+          const rect = container.getBoundingClientRect();
+          const center = getCenter(e.touches[0], e.touches[1]);
+
+          const centerX = center.x - rect.left;
+          const centerY = center.y - rect.top;
+
+          const startCenterX = touchStartCenterRef.current.x - rect.left;
+          const startCenterY = touchStartCenterRef.current.y - rect.top;
+
+          const boardX = (startCenterX - touchStartOffsetRef.current.x) / touchStartScaleRef.current;
+          const boardY = (startCenterY - touchStartOffsetRef.current.y) / touchStartScaleRef.current;
+
+          const nextOffsetX = centerX - boardX * clampedScale;
+          const nextOffsetY = centerY - boardY * clampedScale;
+
+          setScale(clampedScale);
+          setScrollOffset({ x: nextOffsetX, y: nextOffsetY });
+        } else if (e.touches.length === 1 && !isPinchingRef.current) {
+          const touch = e.touches[0];
+          handleDragMove(touch.clientX, touch.clientY);
+        }
+      };
+
+      const onTouchEnd = (e) => {
+        if (e.touches.length < 2) {
+          isPinchingRef.current = false;
+        }
+        handleDragEnd();
+      };
+
+      const changeScaleStep = (delta) => {
+        const container = boardContainerRef.current;
+        if (!container) return;
+        
+        const rect = container.getBoundingClientRect();
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+
+        const boardX = (centerX - scrollOffset.x) / scale;
+        const boardY = (centerY - scrollOffset.y) / scale;
+
+        const nextScale = Math.max(0.15, Math.min(2.0, scale + delta));
+        const nextOffsetX = centerX - boardX * nextScale;
+        const nextOffsetY = centerY - boardY * nextScale;
+
+        setScale(nextScale);
+        setScrollOffset({ x: nextOffsetX, y: nextOffsetY });
+      };
+
+      // 1レベル刻みのリニア・カラーエボリューション
+      const getCellColorAndStyle = (b, c, level) => {
+        if (printEconomy) {
+          if (b === 4 && c === 4) {
+            return {
+              className: "border-2 border-black bg-slate-100 text-black",
+              style: {}
+            };
+          }
+          return {
+            className: "border border-slate-300 bg-white text-black",
+            style: {}
+          };
+        }
+
+        const hue = blockHues[b] !== undefined ? blockHues[b] : blockThemes[b].hue;
+
+        // レベル0：完全未開拓。パレット本来の単色の深み
+        if (level === 0) {
+          return {
+            className: "border border-slate-800/80 text-slate-400 shadow-inner",
+            style: {
+              background: `hsl(${hue}, 30%, 14%)`
+            }
+          };
+        }
+
+        // レベル100：最高峰オーロラ
+        if (level === 100) {
+          return {
+            className: "animate-aurora border-[3px] border-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.7)] text-slate-900 font-black relative overflow-hidden",
+            style: {
+              background: `linear-gradient(135deg, hsl(${hue}, 95%, 65%), hsl(${(hue + 120) % 360}, 95%, 70%), hsl(${(hue + 240) % 360}, 95%, 65%))`,
+            }
+          };
+        }
+
+        // リニア変化
+        let bgStyle = {};
+        let className = "border-slate-800 text-slate-100";
+
+        if (level <= 30) {
+          const progress = (level - 1) / 29;
+          const s = 25 + progress * 15; 
+          const l = 18 + progress * 5;  
+          bgStyle = { background: `hsl(${hue}, ${s}%, ${l}%)` };
+          className = "border border-slate-700/50 shadow-inner";
+        } else if (level <= 60) {
+          const progress = (level - 31) / 29;
+          const s = 40 + progress * 20; 
+          const l = 23 + progress * 5;  
+          bgStyle = {
+            background: `linear-gradient(135deg, hsl(${hue}, ${s}%, ${l}%), #1e293b)`
+          };
+          className = "border-[1.5px] border-slate-400/60 shadow-[0_0_12px_rgba(148,163,184,0.2)]";
+        } else if (level <= 90) {
+          const progress = (level - 61) / 29;
+          const s = 60 + progress * 25; 
+          const l = 28 - progress * 5;  
+          bgStyle = {
+            background: `linear-gradient(135deg, hsl(${hue}, ${s}%, ${l}%), #713f12)`
+          };
+          className = "border-2 border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.25)] font-semibold";
+        } else {
+          const progress = (level - 91) / 8;
+          const s = 85 + progress * 13; 
+          const l = 23 + progress * 5;  
+          bgStyle = {
+            background: `linear-gradient(135deg, hsl(${hue}, ${s}%, ${l}%), #155e75, hsl(${(hue + 45) % 360}, 95%, 45%))`
+          };
+          className = "border-2 border-cyan-400 shadow-[0_0_18px_rgba(6,182,212,0.4)] font-extrabold animate-pulse-slow";
+        }
+
+        return { className, style: bgStyle };
+      };
+
+      // レベル自動同期＆波紋状自動ロールアップ
+      const updateCellData = (b, c, updates) => {
+        setCells(prev => {
+          const next = JSON.parse(JSON.stringify(prev));
+          next[b][c] = { ...next[b][c], ...updates };
+
+          // テキストやメモが更新された場合のシンクロ
+          if (b !== 4 && c === 4) {
+            next[4][b].text = next[b][4].text;
+            next[4][b].memo = next[b][4].memo;
+          } else if (b === 4 && c !== 4) {
+            next[c][4].text = next[4][c].text;
+            next[c][4].memo = next[4][c].memo;
+          }
+
+          // 周辺8マスのレベル平均を中目標へ集約
+          for (let i = 0; i < 9; i++) {
+            if (i === 4) continue;
+            let sum = 0;
+            for (let j = 0; j < 9; j++) {
+              if (j === 4) continue;
+              sum += next[i][j].level;
+            }
+            const avg = Math.round(sum / 8);
+
+            next[i][4].level = avg;
+            next[4][i].level = avg;
+          }
+
+          // 大目標のロールアップ
+          let centerSum = 0;
+          for (let i = 0; i < 9; i++) {
+            if (i === 4) continue;
+            centerSum += next[4][i].level;
+          }
+          const centerAvg = Math.round(centerSum / 8);
+
+          if (next[4][4].level !== centerAvg) {
+            if (centerAvg === 100) {
+              setTimeout(() => triggerConfettiShow(), 300);
+            }
+          }
+          next[4][4].level = centerAvg;
+
+          return next;
+        });
+
+        if (updates.level === 100) {
+          triggerConfettiShow();
+        }
+      };
+
+      const triggerConfettiShow = () => {
+        if (typeof confetti === 'function') {
+          confetti({ particleCount: 200, spread: 90, origin: { y: 0.55 } });
+        }
+      };
+
+      const adjustLevel = (b, c, delta) => {
+        if (b === 4 || c === 4) return; 
+        const currentLvl = cells[b][c].level;
+        const nextLvl = Math.max(0, Math.min(100, currentLvl + delta));
+        updateCellData(b, c, { level: nextLvl });
+      };
+
+      // テキスト編集開始
+      const startInlineEdit = (b, c, e) => {
+        if (e) e.stopPropagation();
+        setEditingCell({ b, c });
+        setInlineText(cells[b][c].text);
+      };
+
+      const saveInlineEdit = () => {
+        if (editingCell) {
+          updateCellData(editingCell.b, editingCell.c, { text: inlineText });
+          setEditingCell(null);
+        }
+      };
+
+      // ブロックタイトル（領域名）のインライン編集開始
+      const startThemeEdit = (bIndex, e) => {
+        e.stopPropagation();
+        setEditingThemeIndex(bIndex);
+        setThemeInputText(blockThemes[bIndex].name);
+      };
+
+      const saveThemeEdit = (bIndex) => {
+        if (editingThemeIndex !== null) {
+          setBlockThemes(prev => ({
+            ...prev,
+            [bIndex]: { ...prev[bIndex], name: themeInputText }
+          }));
+          setEditingThemeIndex(null);
+        }
+      };
+
+      // バックアップエクスポート
+      const exportData = () => {
+        const dataStr = JSON.stringify({ projectName, cells, blockHues, blockThemes }, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        const exportFileDefaultName = `${projectName}_mandala_rpg_backup.json`;
+        
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+        showToast("バックアップ用JSONファイルをダウンロードしました！");
+      };
+
+      // バックアップインポート
+      const importData = (e) => {
+        const fileReader = new FileReader();
+        if (e.target.files && e.target.files[0]) {
+          fileReader.readAsText(e.target.files[0], "UTF-8");
+          fileReader.onload = (event) => {
+            try {
+              const parsed = JSON.parse(event.target.result);
+              if (parsed.cells) {
+                setCells(parsed.cells);
+                if (parsed.projectName) setProjectName(parsed.projectName);
+                if (parsed.blockHues) setBlockHues(parsed.blockHues);
+                if (parsed.blockThemes) setBlockThemes(parsed.blockThemes);
+                showToast("バックアップデータの読み込みに成功しました！", "success");
+              } else {
+                showToast("無効なファイル形式です。", "error");
+              }
+            } catch (err) {
+              showToast("インポート中にエラーが発生しました。", "error");
+            }
+          };
+        }
+      };
+
+      const overallLevelProgress = useMemo(() => {
+        return cells[4][4].level; 
+      }, [cells]);
+
+      const getRankTitle = (lvl) => {
+        if (lvl === 0) return { title: "🌱 始まりの種子", color: "text-emerald-400", bg: "bg-emerald-400/10" };
+        if (lvl <= 30) return { title: "ブロンズ・開拓者", color: "text-amber-500", bg: "bg-amber-500/10" };
+        if (lvl <= 60) return { title: "シルバー・探索者", color: "text-slate-300", bg: "bg-slate-300/10" };
+        if (lvl <= 90) return { title: "ゴールド・覇者", color: "text-yellow-400", bg: "bg-yellow-400/10" };
+        if (lvl <= 99) return { title: "プラチナ・マスター", color: "text-cyan-400", bg: "bg-cyan-400/10" };
+        return { title: "👑レジェンド・創造主", color: "text-yellow-300 animate-pulse", bg: "bg-gradient-to-r from-yellow-500/20 to-red-500/20" };
+      };
+
+      const currentRank = getRankTitle(overallLevelProgress);
+
+      // バランスホイール用の8大領域平均算出ロジック (自律編集された名称とリアルタイム連動)
+      const blockAverages = useMemo(() => {
+        return [0, 1, 2, 3, 5, 6, 7, 8].map(bIndex => {
+          let sum = 0;
+          for (let c = 0; c < 9; c++) {
+            if (c === 4) continue;
+            sum += cells[bIndex][c].level;
+          }
+          return {
+            id: bIndex,
+            name: blockThemes[bIndex].name,
+            icon: blockThemes[bIndex].icon,
+            hue: blockHues[bIndex] !== undefined ? blockHues[bIndex] : blockThemes[bIndex].hue,
+            avg: Math.round(sum / 8)
+          };
+        });
+      }, [cells, blockHues, blockThemes]);
+
+      // 最もレベルの高い領域と低い領域の分析
+      const analysis = useMemo(() => {
+        if (blockAverages.length === 0) return { max: null, min: null };
+        let maxSec = blockAverages[0];
+        let minSec = blockAverages[0];
+        
+        blockAverages.forEach(sec => {
+          if (sec.avg > maxSec.avg) maxSec = sec;
+          if (sec.avg < minSec.avg) minSec = sec;
+        });
+
+        return { max: maxSec, min: minSec };
+      }, [blockAverages]);
+
+      return (
+        <div class="flex h-full w-full overflow-hidden select-none">
+          
+          {/* 左側詳細サイドパネル */}
+          <div class={`w-96 min-w-[384px] bg-[#0d1424] border-r border-slate-800 flex flex-col h-full z-10 no-print transition-all duration-300 ${fullPrintMode ? 'hidden' : ''}`}>
+            
+            {/* パネルヘッダー */}
+            <div class="p-5 border-b border-slate-800 flex flex-col gap-3">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-gem text-yellow-500 text-xl"></i>
+                <input
+                  type="text"
+                  value={projectName}
+                  onChange={(e) => setProjectName(e.target.value)}
+                  class="bg-transparent font-bold text-lg text-slate-100 focus:outline-none border-b border-transparent focus:border-yellow-500/50 w-full px-1"
+                  placeholder="プロジェクト名"
+                />
+              </div>
+              
+              {/* 全体プログレス */}
+              <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-800/80">
+                <div class="flex justify-between items-center text-xs mb-1.5">
+                  <span class="text-slate-400 font-medium">総合目標ランク</span>
+                  <span class={`font-bold px-2 py-0.5 rounded ${currentRank.bg} ${currentRank.color}`}>{currentRank.title}</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden border border-slate-700/50">
+                    <div 
+                      class="bg-gradient-to-r from-amber-500 via-yellow-400 to-cyan-400 h-full rounded-full transition-all duration-500"
+                      style={{ width: `${overallLevelProgress}%` }}
+                    ></div>
+                  </div>
+                  <span class="text-sm font-black text-yellow-400 min-w-[45px] text-right font-orbitron">Lv.{overallLevelProgress}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 詳細編集エリア */}
+            <div class="flex-grow overflow-y-auto p-5 space-y-4 no-scrollbar">
+              <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                <div class="flex justify-between items-start mb-3">
+                  <div>
+                    <span class="text-[10px] text-slate-400 font-bold tracking-wider uppercase bg-slate-800 px-2 py-1 rounded">
+                      BLOCK {selectedCell.b + 1} - CELL {selectedCell.c + 1}
+                    </span>
+                    <h3 class="text-sm font-bold text-slate-200 mt-2 flex items-center gap-2">
+                      <i class={`fa-solid ${blockThemes[selectedCell.b].icon} text-slate-400`}></i>
+                      {blockThemes[selectedCell.b].name}
+                    </h3>
+                  </div>
+                  <div class="text-right">
+                    <span class="text-[10px] text-slate-400 block">現在のレベル</span>
+                    <span class="text-2xl font-black text-yellow-400 font-orbitron">Lv.{currentCellData.level}</span>
+                  </div>
+                </div>
+
+                {/* 改行対応テキスト入力 */}
+                <div class="space-y-1.5">
+                  <label class="text-[11px] text-slate-400 font-semibold block">マス目テキスト (改行反映)</label>
+                  <textarea
+                    value={currentCellData.text}
+                    onChange={(e) => updateCellData(selectedCell.b, selectedCell.c, { text: e.target.value })}
+                    rows={3}
+                    class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-yellow-500 font-medium whitespace-pre-wrap leading-relaxed"
+                    placeholder="マスの目標やアクションを入力してください..."
+                  />
+                </div>
+
+                {/* レベル調整コントローラー */}
+                <div class="mt-4 pt-4 border-t border-slate-800/80 space-y-3">
+                  <div class="flex justify-between items-center">
+                    <span class="text-[11px] text-slate-400 font-semibold">
+                      レベル成長調整
+                      {(selectedCell.b === 4 || selectedCell.c === 4) && <span class="text-red-400 ml-1.5">(自動集計対象マス)</span>}
+                    </span>
+                  </div>
+                  
+                  <div class="flex items-center gap-2">
+                    <button
+                      onClick={() => adjustLevel(selectedCell.b, selectedCell.c, -10)}
+                      disabled={selectedCell.b === 4 || selectedCell.c === 4}
+                      class="bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-xs px-2.5 py-1.5 rounded text-slate-300 font-bold transition-all"
+                    >
+                      -10
+                    </button>
+                    <button
+                      onClick={() => adjustLevel(selectedCell.b, selectedCell.c, -1)}
+                      disabled={selectedCell.b === 4 || selectedCell.c === 4}
+                      class="bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-xs px-2.5 py-1.5 rounded text-slate-300 font-bold transition-all"
+                    >
+                      -1
+                    </button>
+                    
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={currentCellData.level}
+                      onChange={(e) => updateCellData(selectedCell.b, selectedCell.c, { level: parseInt(e.target.value) })}
+                      disabled={selectedCell.b === 4 || selectedCell.c === 4}
+                      class="w-full accent-yellow-500 h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer disabled:opacity-40"
+                    />
+
+                    <button
+                      onClick={() => adjustLevel(selectedCell.b, selectedCell.c, 1)}
+                      disabled={selectedCell.b === 4 || selectedCell.c === 4}
+                      class="bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-xs px-2.5 py-1.5 rounded text-slate-300 font-bold transition-all"
+                    >
+                      +1
+                    </button>
+                    <button
+                      onClick={() => adjustLevel(selectedCell.b, selectedCell.c, 10)}
+                      disabled={selectedCell.b === 4 || selectedCell.c === 4}
+                      class="bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-xs px-2.5 py-1.5 rounded text-slate-300 font-bold transition-all"
+                    >
+                      +10
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* アプローチ詳細 */}
+              <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-2.5">
+                <label class="text-[11px] text-slate-400 font-semibold block flex items-center gap-1.5">
+                  <i class="fa-solid fa-pen-nib text-cyan-400"></i>
+                  アプローチ詳細・行動計画メモ
+                </label>
+                <textarea
+                  value={currentCellData.memo || ""}
+                  onChange={(e) => updateCellData(selectedCell.b, selectedCell.c, { memo: e.target.value })}
+                  rows={3}
+                  class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-300 focus:outline-none focus:border-cyan-500 font-medium leading-relaxed"
+                  placeholder="このマスのレベルアップ条件、具体的なタスク、日々の振り返りなど..."
+                />
+              </div>
+
+              {/* バランスホイール・調和度アドバイザー（自律連動） */}
+              <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-3.5">
+                <span class="text-[11px] text-slate-400 font-semibold block flex items-center gap-1.5 border-b border-slate-800/60 pb-1.5">
+                  <i class="fa-solid fa-chart-pie text-indigo-400"></i>
+                  調和度分析（自律インジケーター）
+                </span>
+                
+                {/* 8領域のリアルタイムステータス */}
+                <div class="grid grid-cols-2 gap-2 text-[10px]">
+                  {blockAverages.map(sec => (
+                    <div key={sec.id} class="bg-slate-950/40 p-1.5 rounded border border-slate-800/40 flex flex-col justify-between h-11">
+                      <div class="flex justify-between items-center mb-0.5">
+                        <span class="text-slate-400 truncate max-w-[100px] flex items-center gap-1" title={sec.name}>
+                          <i class={`fa-solid ${sec.icon} text-slate-500 text-[8px]`}></i>
+                          {sec.name}
+                        </span>
+                        <span class="font-bold text-yellow-500 font-orbitron">{sec.avg}%</span>
+                      </div>
+                      <div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full transition-all duration-300" style={{ width: `${sec.avg}%`, backgroundColor: `hsl(${sec.hue}, 80%, 50%)` }}></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* コーチングレコメンドアドバイス */}
+                {analysis.max && analysis.min && (
+                  <div class="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/60 text-[10px] space-y-1.5 leading-relaxed">
+                    <div class="flex items-center gap-1.5 text-emerald-400 font-bold">
+                      <i class="fa-solid fa-circle-check text-[9px]"></i>
+                      現在の圧倒的強み: {analysis.max.name} (Lv.{analysis.max.avg})
+                    </div>
+                    <div class="flex items-center gap-1.5 text-cyan-400 font-bold">
+                      <i class="fa-solid fa-compass text-[9px]"></i>
+                      次の重点開拓目標: {analysis.min.name} (Lv.{analysis.min.avg})
+                    </div>
+                    <p class="text-slate-400 italic text-[9px]">
+                      {analysis.max.id === analysis.min.id || (analysis.max.avg === 0 && analysis.min.avg === 0)
+                        ? "すべての領域が等しく始まりを待っています。まずは気になる小さなアクションを1歩進めましょう！"
+                        : `「${analysis.max.name}」の推進力は素晴らしい状態です。この推進力を活かし、まだ成長の余白が大きい「${analysis.min.name}」の行動を1つでも着手すると、全体の調和好循環がさらに加速します！`
+                      }
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* システムバックアップ・リセット (安全設計) */}
+            <div class="p-4 border-t border-slate-800 bg-slate-950/80 space-y-3">
+              <div class="grid grid-cols-2 gap-2">
+                <button
+                  onClick={exportData}
+                  class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] py-2 px-3 rounded font-bold flex items-center justify-center gap-1.5 transition-all border border-slate-700"
+                >
+                  <i class="fa-solid fa-file-export"></i>
+                  バックアップ
+                </button>
+                <label class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] py-2 px-3 rounded font-bold flex items-center justify-center gap-1.5 transition-all border border-slate-700 cursor-pointer text-center">
+                  <i class="fa-solid fa-file-import"></i>
+                  復元ロード
+                  <input
+                    type="file"
+                    accept=".json"
+                    onChange={importData}
+                    class="hidden"
+                  />
+                </label>
+              </div>
+              
+              {/* 白紙開始 ＆ サンプル復元 */}
+              <div class="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setConfirmModal('clear')}
+                  class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-[11px] py-2 px-3 rounded font-bold flex items-center justify-center gap-1.5 transition-all"
+                  title="すべてのジャンル名とマスをクリアして、完全に自由な用途の白紙から開始します"
+                >
+                  <i class="fa-solid fa-eraser"></i>
+                  🧹 ゼロから白紙
+                </button>
+                
+                <button
+                  onClick={() => setConfirmModal('reset')}
+                  class="w-full bg-red-950/50 hover:bg-red-900/60 border border-red-800/60 text-red-300 text-[11px] py-2 px-3 rounded font-bold flex items-center justify-center gap-1.5 transition-all"
+                  title="傑作デフォルトコーチングデータを再度展開します"
+                >
+                  <i class="fa-solid fa-rotate-left"></i>
+                  傑作デモ復元
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* メインキャンバスエリア */}
+          <div class="flex-grow flex flex-col h-full overflow-hidden relative">
+            
+            {/* コントロールヘッダー */}
+            <div class={`p-4 bg-[#0a0f1d] border-b border-slate-800 flex flex-wrap justify-between items-center gap-3 z-10 no-print ${fullPrintMode ? 'hidden' : ''}`}>
+              <div class="flex items-center gap-3">
+                <h2 class="text-sm font-black text-yellow-400 flex items-center gap-1.5 tracking-wider uppercase">
+                  <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+                  </span>
+                  MANDALA SPHERES
+                </h2>
+                <div class="h-4 w-[1px] bg-slate-700"></div>
+                
+                {/* ズームフォーカス切り替え */}
+                <div class="flex items-center gap-1.5 bg-slate-950 p-1 rounded-lg border border-slate-800">
+                  <button
+                    onClick={() => setZoomBlock(null)}
+                    class={`px-2.5 py-1 text-xs font-bold rounded transition-all ${zoomBlock === null ? 'bg-yellow-500 text-slate-950' : 'text-slate-400 hover:text-slate-200'}`}
+                  >
+                    9x9 全体
+                  </button>
+                  <select
+                    value={zoomBlock !== null ? zoomBlock : ""}
+                    onChange={(e) => setZoomBlock(e.target.value === "" ? null : parseInt(e.target.value))}
+                    class={`text-xs font-bold px-2 py-1 rounded focus:outline-none cursor-pointer bg-slate-900 border border-slate-800 ${zoomBlock !== null ? 'text-yellow-400' : 'text-slate-400'}`}
+                  >
+                    <option value="">-- ブロック拡大 --</option>
+                    {Object.keys(blockThemes).map((key) => (
+                      <option key={key} value={key}>
+                        {parseInt(key) + 1}: {blockThemes[key].name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* 右側アクション */}
+              <div class="flex items-center gap-2">
+                
+                {/* 節約印刷トグル */}
+                <button
+                  onClick={() => setPrintEconomy(!printEconomy)}
+                  class={`p-2 rounded text-xs font-bold border transition-all flex items-center gap-1.5 ${printEconomy ? 'bg-slate-200 text-slate-950 border-white' : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-slate-600'}`}
+                  title="インク節約印刷モード"
+                >
+                  <i class={`fa-solid ${printEconomy ? 'fa-toggle-on text-emerald-600' : 'fa-toggle-off'}`}></i>
+                  インク節約印刷
+                </button>
+
+                {/* 全画面印刷 */}
+                <button
+                  onClick={() => setFullPrintMode(true)}
+                  class="bg-cyan-600 hover:bg-cyan-500 text-white text-xs py-2 px-3 rounded font-bold flex items-center gap-1.5 transition-all shadow-md"
+                  title="印刷用全画面モード"
+                >
+                  <i class="fa-solid fa-print"></i>
+                  全画面印刷
+                </button>
+
+                {/* 自動画面フィット */}
+                <button
+                  onClick={fitToScreen}
+                  class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 p-2 rounded text-xs font-bold transition-all flex items-center gap-1.5"
+                  title="画面に自動フィット"
+                >
+                  <i class="fa-solid fa-expand"></i>
+                  <span>画面にフィット</span>
+                </button>
+
+                {/* スケールコントローラー */}
+                <div class="flex items-center gap-1.5 bg-slate-950 px-2 py-1.5 rounded border border-slate-800 no-drag">
+                  <button
+                    onClick={() => changeScaleStep(-0.1)}
+                    class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-all border border-slate-750"
+                  >
+                    <i class="fa-solid fa-minus text-[10px]"></i>
+                  </button>
+                  
+                  <input
+                    type="range"
+                    min="0.15"
+                    max="2.0"
+                    step="0.05"
+                    value={scale}
+                    onChange={(e) => setScale(parseFloat(e.target.value))}
+                    class="w-16 accent-cyan-500 h-1 rounded bg-slate-800"
+                  />
+
+                  <button
+                    onClick={() => changeScaleStep(0.1)}
+                    class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-all border border-slate-750"
+                  >
+                    <i class="fa-solid fa-plus text-[10px]"></i>
+                  </button>
+                  
+                  <span class="text-[10px] text-slate-300 font-mono w-9 text-right">{Math.round(scale * 100)}%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 全画面印刷モードヘッダー */}
+            {fullPrintMode && (
+              <div class="absolute top-4 left-4 right-4 flex justify-between items-center bg-slate-900/95 border border-slate-800 rounded-xl p-3.5 z-50 no-print">
+                <div class="flex items-center gap-3">
+                  <span class="text-sm font-bold text-yellow-400 flex items-center gap-2">
+                    <i class="fa-solid fa-crown animate-bounce"></i>
+                    {projectName} 印刷プレビュー
+                  </span>
+                  <p class="text-[10px] text-slate-400">
+                    用紙「横向き」、サイズ「A3」または「A4」に指定してください。
+                  </p>
+                </div>
+                <div class="flex gap-2">
+                  <button
+                    onClick={() => window.print()}
+                    class="bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold text-xs py-1.5 px-3.5 rounded shadow"
+                  >
+                    印刷ダイアログ起動
+                  </button>
+                  <button
+                    onClick={() => setFullPrintMode(false)}
+                    class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-1.5 px-3.5 rounded"
+                  >
+                    編集に戻る
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ボード描画コンテナ */}
+            <div
+              ref={boardContainerRef}
+              onMouseDown={onMouseDown}
+              onMouseMove={onMouseMove}
+              onMouseUp={handleDragEnd}
+              onMouseLeave={handleDragEnd}
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={onTouchEnd}
+              class="flex-grow overflow-hidden relative bg-[#090c14] drag-canvas"
+            >
+              
+              {/* ドラッグ・拡大用ラッパー */}
+              <div
+                className="absolute transition-transform duration-100 origin-top-left"
+                style={{
+                  transform: `translate(${scrollOffset.x}px, ${scrollOffset.y}px) scale(${scale})`,
+                }}
+              >
+                
+                {/* 印刷・マンダラボード外枠 */}
+                <div class={`print-area mandala-board-wrapper bg-[#101625]/60 rounded-3xl p-6 flex flex-wrap gap-5 justify-between relative shadow-[0_0_60px_rgba(0,0,0,0.6)] border border-slate-800/80 ${printEconomy ? 'bg-white shadow-none border-0' : ''}`}>
+                  
+                  {/* マンダラブロック（3x3 = 9個） */}
+                  {Array.from({ length: 9 }).map((_, bIndex) => {
+                    const theme = blockThemes[bIndex];
+                    const blockAvgLv = bIndex === 4 ? cells[4][4].level : cells[bIndex][4].level;
+
+                    const isFocusTarget = zoomBlock === null || zoomBlock === bIndex;
+                    if (!isFocusTarget) return null;
+
+                    const currentHue = blockHues[bIndex] !== undefined ? blockHues[bIndex] : blockThemes[bIndex].hue;
+
+                    return (
+                      <div
+                        key={bIndex}
+                        className={`mandala-block-wrapper rounded-2xl p-2.5 flex flex-col justify-between transition-all duration-300 border ${
+                          printEconomy 
+                            ? 'bg-white border-2 border-black shadow-none' 
+                            : 'bg-[#141d2f]/95 border-slate-800/80 shadow-[0_4px_25px_rgba(0,0,0,0.45)]'
+                        } ${
+                          zoomBlock !== null ? 'scale-[1.8] origin-center z-40 mx-auto my-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 shadow-[0_0_50px_rgba(0,0,0,0.8)]' : ''
+                        }`}
+                      >
+                        {/* ブロックタイトル ＆ 20カラーパレット ＆ 領域名ダブルクリック編集 */}
+                        <div class="text-[11px] font-black px-1 pb-1.5 border-b border-slate-800/40 flex items-center justify-between group">
+                          <div class="flex items-center gap-2 relative color-picker-container">
+                            
+                            {/* ブロックタイトル編集ロジック（ダブルクリックで切り替え） */}
+                            {editingThemeIndex === bIndex ? (
+                              <input
+                                type="text"
+                                value={themeInputText}
+                                onChange={(e) => setThemeInputText(e.target.value)}
+                                onBlur={() => saveThemeEdit(bIndex)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') saveThemeEdit(bIndex);
+                                }}
+                                autoFocus
+                                className="bg-slate-950 text-white font-bold px-1.5 py-0.5 rounded text-[11px] border border-cyan-400 w-36 focus:outline-none no-drag"
+                              />
+                            ) : (
+                              <span
+                                onDoubleClick={(e) => startThemeEdit(bIndex, e)}
+                                className={`flex items-center gap-1 cursor-pointer transition-colors hover:text-cyan-400 ${printEconomy ? 'text-black' : 'text-slate-200'}`}
+                                title="ダブルクリックで領域名を変更"
+                              >
+                                <i class={`fa-solid ${theme.icon} ${printEconomy ? 'text-black' : 'text-slate-400'} text-[10px]`}></i>
+                                {bIndex + 1}. {theme.name}
+                                <i class="fa-solid fa-pen text-[8px] opacity-0 group-hover:opacity-60 ml-1 text-cyan-400 no-print"></i>
+                              </span>
+                            )}
+
+                            {/* 🎨 ダークカラーパレット選択ボタン */}
+                            {!printEconomy && (
+                              <div class="relative flex items-center no-drag">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setActivePaletteIndex(activePaletteIndex === bIndex ? null : bIndex);
+                                  }}
+                                  className="w-3.5 h-3.5 rounded-full border border-slate-600/70 shadow-sm transition-transform hover:scale-110 active:scale-95 cursor-pointer ml-1"
+                                  style={{ backgroundColor: `hsl(${currentHue}, 45%, 22%)` }}
+                                  title="このブロックのテーマカラーを変更"
+                                />
+
+                                {/* 20色パレット */}
+                                {activePaletteIndex === bIndex && (
+                                  <div className="absolute left-0 top-5 bg-[#0e1626]/95 border border-slate-800 rounded-xl p-3 shadow-2xl z-50 w-72 grid grid-cols-5 gap-2 transition-all no-drag">
+                                    <div className="col-span-5 text-[9px] text-slate-400 pb-1 border-b border-slate-800/60 font-semibold flex items-center justify-between">
+                                      <span>ベースカラー変更 (20色)</span>
+                                      <i class="fa-solid fa-palette text-cyan-400"></i>
+                                    </div>
+                                    {DARK_PALETTE_20.map((p) => {
+                                      const isCurrent = currentHue === p.hue;
+                                      return (
+                                        <button
+                                          key={p.id}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setBlockHues(prev => ({ ...prev, [bIndex]: p.hue }));
+                                            setActivePaletteIndex(null);
+                                          }}
+                                          className={`w-full h-8 rounded-lg flex items-center justify-center relative hover:scale-105 active:scale-95 transition-all ${p.labelColor} border ${isCurrent ? 'border-yellow-400 scale-[1.05]' : 'border-transparent'}`}
+                                          title={p.name}
+                                        >
+                                          {isCurrent && <i class="fa-solid fa-check text-white text-[10px]"></i>}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          
+                          <span className={`text-[9px] px-1.5 py-0.5 rounded ${printEconomy ? 'text-black font-bold' : 'text-yellow-400 bg-yellow-500/10 font-orbitron'}`}>
+                            平均Lv.{blockAvgLv}
+                          </span>
+                        </div>
+
+                        {/* マップマス（3x3 = 9マス） */}
+                        <div class="grid grid-cols-3 gap-1.5 mt-1.5">
+                          {Array.from({ length: 9 }).map((_, cIndex) => {
+                            const cellData = cells[bIndex][cIndex];
+                            const isSelected = selectedCell.b === bIndex && selectedCell.c === cIndex;
+                            const styleData = getCellColorAndStyle(bIndex, cIndex, cellData.level);
+
+                            const isBlockCenter = cIndex === 4;
+                            const isAbsoluteCenter = bIndex === 4 && cIndex === 4;
+
+                            const isEditingThisCell = editingCell && editingCell.b === bIndex && editingCell.c === cIndex;
+
+                            return (
+                              <div
+                                key={cIndex}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (isMoved.current) return;
+                                  
+                                  if (isSelected) {
+                                    startInlineEdit(bIndex, cIndex, e);
+                                  } else {
+                                    setSelectedCell({ b: bIndex, c: cIndex });
+                                  }
+                                }}
+                                onDoubleClick={(e) => {
+                                  if (isMoved.current) return;
+                                  startInlineEdit(bIndex, cIndex, e);
+                                }}
+                                className={`mandala-cell rounded-xl p-1.5 flex flex-col justify-between relative cursor-pointer overflow-hidden ${styleData.className} ${
+                                  isSelected ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-900 scale-[1.02] z-10' : 'hover:scale-[1.01]'
+                                }`}
+                                style={styleData.style}
+                              >
+                                {/* 1. 上部: ラベルパーツ */}
+                                <div class="flex items-center justify-between text-[8px] opacity-70 tracking-tight font-orbitron font-bold select-none h-3">
+                                  <span>
+                                    {bIndex + 1}-{cIndex + 1}
+                                  </span>
+                                  <span>
+                                    {isAbsoluteCenter 
+                                      ? "⭐ 大目標" 
+                                      : isBlockCenter 
+                                        ? "🔷 中目標" 
+                                        : "◈ ACTION"}
+                                  </span>
+                                </div>
+
+                                {/* 2. 中央: 改行テキスト部 */}
+                                <div class="flex-grow flex items-center justify-center my-0.5 max-h-[52px] overflow-hidden">
+                                  {isEditingThisCell ? (
+                                    <textarea
+                                      value={inlineText}
+                                      onChange={(e) => setInlineText(e.target.value)}
+                                      onBlur={saveInlineEdit}
+                                      autoFocus
+                                      rows={2}
+                                      className="w-full text-[11px] bg-slate-950 text-white p-1 rounded leading-tight whitespace-pre-wrap border border-yellow-500 font-medium focus:outline-none no-drag"
+                                      placeholder="目標を入力..."
+                                    />
+                                  ) : (
+                                    <p className={`w-full text-center text-[11px] leading-tight font-bold tracking-normal whitespace-pre-wrap break-all line-clamp-3 select-none ${
+                                      printEconomy ? 'text-black' : (cellData.level > 90 ? 'text-slate-950' : 'text-slate-100')
+                                    }`}>
+                                      {cellData.text}
+                                    </p>
+                                  )}
+                                </div>
+
+                                {/* 3. 下部: ステータス・円環プログレスサークル */}
+                                <div class="flex items-center justify-between mt-0.5 h-5 select-none">
+                                  <span className={`text-[10px] font-black font-orbitron tracking-tight ${
+                                    printEconomy ? 'text-black' : (cellData.level > 90 ? 'text-slate-950' : 'text-yellow-400')
+                                  }`}>
+                                    Lv.{cellData.level}
+                                  </span>
+
+                                  <div class="relative w-4.5 h-4.5 flex items-center justify-center">
+                                    <svg class="w-4.5 h-4.5 transform -rotate-90" viewBox="0 0 24 24">
+                                      <circle
+                                        cx="12"
+                                        cy="12"
+                                        r="9"
+                                        fill="transparent"
+                                        stroke={printEconomy ? "#cbd5e1" : "rgba(255, 255, 255, 0.15)"}
+                                        strokeWidth="2.5"
+                                      />
+                                      <circle
+                                        cx="12"
+                                        cy="12"
+                                        r="9"
+                                        fill="transparent"
+                                        stroke={printEconomy ? "#000" : (cellData.level >= 100 ? "#eab308" : cellData.level > 90 ? "#22d3ee" : "#d4af37")}
+                                        strokeWidth="2.5"
+                                        strokeDasharray={`${2 * Math.PI * 9}`}
+                                        strokeDashoffset={`${2 * Math.PI * 9 * (1 - cellData.level / 100)}`}
+                                        strokeLinecap="round"
+                                        className="transition-all duration-300"
+                                      />
+                                    </svg>
+                                    
+                                    {cellData.level === 100 && (
+                                      <div class="absolute -top-1 -right-1 text-[8px] text-yellow-300 drop-shadow animate-bounce">
+                                        <i class="fa-solid fa-crown"></i>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* クイックホバーアクション (テキスト編集時は非表示) */}
+                                {!isBlockCenter && !printEconomy && !isEditingThisCell && (
+                                  <div class="absolute inset-x-0 bottom-0 top-0 opacity-0 hover:opacity-100 bg-slate-950/90 backdrop-blur-sm transition-opacity duration-150 flex items-center justify-between px-2.5 z-10 rounded-xl no-drag">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        adjustLevel(bIndex, cIndex, -1);
+                                      }}
+                                      class="w-7 h-7 rounded-full bg-slate-800 hover:bg-red-600 hover:scale-105 active:scale-95 text-white font-bold flex items-center justify-center transition-all border border-slate-700"
+                                      title="レベルを1下げる"
+                                    >
+                                      <i class="fa-solid fa-minus text-[10px]"></i>
+                                    </button>
+                                    
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        startInlineEdit(bIndex, cIndex, e);
+                                      }}
+                                      class="flex flex-col items-center justify-center text-slate-300 hover:text-yellow-400 transition-colors py-1 px-2 rounded-lg hover:bg-slate-850 border border-transparent hover:border-slate-700"
+                                      title="テキストを編集"
+                                    >
+                                      <i class="fa-solid fa-pen-to-square text-xs mb-0.5"></i>
+                                      <span class="text-[7px] font-bold tracking-wider leading-none">EDIT</span>
+                                    </button>
+
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        adjustLevel(bIndex, cIndex, 1);
+                                      }}
+                                      class="w-7 h-7 rounded-full bg-slate-800 hover:bg-emerald-600 hover:scale-105 active:scale-95 text-white font-bold flex items-center justify-center transition-all border border-slate-700"
+                                      title="レベルを1上げる"
+                                    >
+                                      <i class="fa-solid fa-plus text-[10px]"></i>
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 🛡️ オリジナルカスタム確認ダイアログモーダル */}
+          {confirmModal && (
+            <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-[100] no-print">
+              <div className="bg-[#0f172a] border border-slate-800 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl animate-fade-in no-drag">
+                <h4 className="text-base font-bold text-slate-100 flex items-center gap-2 mb-3">
+                  <i className={`fa-solid ${confirmModal === 'reset' ? 'fa-rotate-left text-yellow-500' : 'fa-eraser text-red-500'}`}></i>
+                  {confirmModal === 'reset' ? 'デモデータに復元しますか？' : '白紙（ゼロ）から開始しますか？'}
+                </h4>
+                <p className="text-xs text-slate-300 leading-relaxed mb-5">
+                  {confirmModal === 'reset' 
+                    ? '現在入力されているすべてのデータ（ブロックテーマを含む）が上書きされ、デフォルトの傑作コーチングプランに復元されます。' 
+                    : 'すべてのテキストとブロックテーマ名がクリアされ、プレーンな「エリア1」「エリア2」といった自由編集に適した完全な白紙にリセットされます。'}
+                </p>
+                <div className="flex justify-end gap-2.5">
+                  <button
+                    onClick={() => setConfirmModal(null)}
+                    className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-4 py-2 rounded-lg font-bold transition-all"
+                  >
+                    キャンセル
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (confirmModal === 'reset') {
+                        setCells(createInitialCells());
+                        setBlockThemes(DEFAULT_BLOCK_THEMES);
+                        setProjectName("ライフキャリア・クロニクル");
+                        setSelectedCell({ b: 4, c: 4 });
+                        showToast("デフォルトのコーチングデータを復元しました！");
+                      } else {
+                        // ゼロから白紙
+                        const blankThemes = {};
+                        for (let b = 0; b < 9; b++) {
+                          blankThemes[b] = {
+                            name: b === 4 ? "メインテーマ" : `エリア ${b + 1}`,
+                            hue: DEFAULT_BLOCK_THEMES[b].hue,
+                            icon: b === 4 ? "fa-crown" : "fa-crosshairs",
+                            desc: "自由に入力してください"
+                          };
+                        }
+                        setBlockThemes(blankThemes);
+                        setCells(createBlankCells(blankThemes));
+                        setProjectName("新規マンダラプロジェクト");
+                        setSelectedCell({ b: 4, c: 4 });
+                        showToast("完全な白紙シートを作成しました！Lv.0から開拓しよう！");
+                      }
+                      setConfirmModal(null);
+                      setTimeout(fitToScreen, 100);
+                    }}
+                    className={`text-xs px-4 py-2 rounded-lg font-bold transition-all text-white ${
+                      confirmModal === 'reset' ? 'bg-yellow-600 hover:bg-yellow-500' : 'bg-red-600 hover:bg-red-500'
+                    }`}
+                  >
+                    実行する
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 🔔 オリジナル通知トーストシステム */}
+          {toast && (
+            <div className={`fixed top-6 left-1/2 -translate-x-1/2 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 z-[110] no-print animate-bounce border ${
+              toast.type === 'success' 
+                ? 'bg-slate-900 border-emerald-500/50 text-emerald-400' 
+                : 'bg-slate-900 border-red-500/50 text-red-400'
+            }`}>
+              <i className={`fa-solid ${toast.type === 'success' ? 'fa-circle-check text-emerald-500' : 'fa-triangle-exclamation text-red-500'}`}></i>
+              <span className="font-bold text-xs">{toast.text}</span>
+            </div>
+          )}
+
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
