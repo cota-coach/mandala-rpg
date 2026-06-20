@@ -898,7 +898,9 @@ function App() {
     });
   };
   const sanitizeBackupFileName = name => {
-    return String(name || "mandala-chart").replace(/[\\/:*?"<>|]/g, "_").trim() || "mandala-chart";
+    const stamp = new Date().toISOString().slice(0, 10).replaceAll("-", "");
+    const asciiName = String(name || "").normalize("NFKD").replace(/[^\w.-]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 40);
+    return (asciiName || "mandala-chart") + "_" + stamp;
   };
   const normalizeBackupCells = rawCells => {
     if (!rawCells || typeof rawCells !== "object") throw new Error("cells_missing");
@@ -964,7 +966,7 @@ function App() {
       8: 325
     };
     return {
-      projectName: typeof parsed.projectName === "string" && parsed.projectName.trim() ? parsed.projectName : "????????????",
+      projectName: typeof parsed.projectName === "string" && parsed.projectName.trim() ? parsed.projectName : "復元したマンダラチャート",
       cells: normalizeBackupCells(parsed.cells),
       blockNames: normalizeStringMap(parsed.blockNames, DEFAULT_BLOCK_NAMES),
       blockHues: normalizeHueMap(parsed.blockHues, defaultHues),
@@ -974,15 +976,15 @@ function App() {
   const getImportErrorMessage = err => {
     switch (err?.message) {
       case "json_parse":
-        return "JSON???????????????????????????????????????";
+        return "JSONファイルとして読み込めませんでした。バックアップファイルを選び直してください。";
       case "not_mandala_backup":
-        return "??????????????????????";
+        return "このアプリのバックアップ形式ではありません。";
       case "cells_missing":
       case "cells_shape":
       case "backup_shape":
-        return "???????????????????????????????????????????";
+        return "バックアップデータの形が壊れている可能性があります。別のバックアップを試してください。";
       default:
-        return "????????????????????????????????";
+        return "復元中にエラーが発生しました。別のバックアップを試してください。";
     }
   };
   const exportData = () => {
@@ -1007,7 +1009,7 @@ function App() {
     link.click();
     link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    showToast("??????????????" + fileName);
+    showToast("バックアップを作成しました：" + fileName);
   };
   const importData = e => {
     const file = e.target.files?.[0];
@@ -1030,7 +1032,7 @@ function App() {
           show: false
         });
         setTimeout(fitToScreen, 120);
-        showToast("??????????????" + restored.projectName);
+        showToast("バックアップを復元しました：" + restored.projectName);
       } catch (err) {
         alert(getImportErrorMessage(err));
       } finally {
@@ -1038,7 +1040,7 @@ function App() {
       }
     };
     reader.onerror = () => {
-      alert("?????????????????????JSON???????????????");
+      alert("ファイルを読み込めませんでした。保存済みのJSONバックアップを選んでください。");
       e.target.value = "";
     };
     reader.readAsText(file, "UTF-8");
