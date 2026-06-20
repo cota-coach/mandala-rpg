@@ -419,6 +419,7 @@ function App() {
     x: 0,
     y: 0
   });
+  const levelTouchHandledRef = useRef(false);
   useEffect(() => {
     localStorage.setItem("mandala_rpg_cells_v3", JSON.stringify(cells));
   }, [cells]);
@@ -771,6 +772,21 @@ function App() {
     updateCellData(b, c, {
       level: nextLvl
     });
+  };
+  const handleLevelTouch = (e, b, c, delta) => {
+    e.stopPropagation();
+    e.preventDefault();
+    levelTouchHandledRef.current = true;
+    adjustLevel(b, c, delta);
+    setTimeout(() => {
+      levelTouchHandledRef.current = false;
+    }, 350);
+  };
+  const handleLevelClick = (e, b, c, delta) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (levelTouchHandledRef.current) return;
+    adjustLevel(b, c, delta);
   };
   const startInlineEdit = (b, c, e) => {
     if (e) e.stopPropagation();
@@ -1454,16 +1470,8 @@ function App() {
           e.stopPropagation();
           e.preventDefault();
         },
-        onTouchStart: e => {
-          e.stopPropagation();
-          e.preventDefault();
-          adjustLevel(bIndex, cIndex, -1);
-        },
-        onClick: e => {
-          e.stopPropagation();
-          e.preventDefault();
-          adjustLevel(bIndex, cIndex, -1);
-        },
+        onTouchStart: e => handleLevelTouch(e, bIndex, cIndex, -1),
+        onClick: e => handleLevelClick(e, bIndex, cIndex, -1),
         className: "w-4 h-4 rounded-full bg-slate-800 hover:bg-red-600 flex items-center justify-center text-[10px] text-white font-black transition-all active:scale-75",
         title: "\u30EC\u30D9\u30EB\u30921\u4E0B\u3052\u308B"
       }, "-"), /*#__PURE__*/React.createElement("span", {
@@ -1477,16 +1485,8 @@ function App() {
           e.stopPropagation();
           e.preventDefault();
         },
-        onTouchStart: e => {
-          e.stopPropagation();
-          e.preventDefault();
-          adjustLevel(bIndex, cIndex, 1);
-        },
-        onClick: e => {
-          e.stopPropagation();
-          e.preventDefault();
-          adjustLevel(bIndex, cIndex, 1);
-        },
+        onTouchStart: e => handleLevelTouch(e, bIndex, cIndex, 1),
+        onClick: e => handleLevelClick(e, bIndex, cIndex, 1),
         className: "w-4 h-4 rounded-full bg-slate-800 hover:bg-emerald-600 flex items-center justify-center text-[10px] text-white font-black transition-all active:scale-75",
         title: "\u30EC\u30D9\u30EB\u30921\u4E0A\u3052\u308B"
       }, "+")) : /*#__PURE__*/React.createElement("span", {
