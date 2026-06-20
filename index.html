@@ -206,50 +206,33 @@
       };
     };
 
-    // 【100%エラーフリー・極上マルチConfettiエンジン】：
-    // 複雑なブレンド計算をすべて撤去し、毎回完全にランダムな極彩色が美しく弾け飛ぶ最高にシンプルな設計へ大掃除。
-    // これにより、連打しても毎回全く違う軌道・色味（マゼンタ、黄、青、緑、赤など）のきらきらした最高のお祝いが始まります。
+    // 【100%エラーフリー・極上マルチConfettiエンジン】
     const triggerConfettiShow = (isAbsoluteCenter = false) => {
       if (typeof confetti !== 'function') return;
 
       if (isAbsoluteCenter) {
         // 大目標平均Lv.100時のレジェンド級お祝い（左右からクロスして無限に舞い散るお祭り仕様）
-        const end = Date.now() + (2 * 1000); // 2秒間お祝い
+        const end = Date.now() + (2 * 1000);
         const frame = () => {
-          confetti({
-            particleCount: 6,
-            angle: 60,
-            spread: 55,
-            origin: { x: 0, y: 0.8 }
-          });
-          confetti({
-            particleCount: 6,
-            angle: 120,
-            spread: 55,
-            origin: { x: 1, y: 0.8 }
-          });
-
-          if (Date.now() < end) {
-            requestAnimationFrame(frame);
-          }
+          confetti({ particleCount: 6, angle: 60, spread: 55, origin: { x: 0, y: 0.8 } });
+          confetti({ particleCount: 6, angle: 120, spread: 55, origin: { x: 1, y: 0.8 } });
+          if (Date.now() < end) requestAnimationFrame(frame);
         };
         frame();
         return;
       }
 
-      // 通常マスのレベル100達成：
-      // 打ち上げるたびに角度、広がり、左右の位置を毎回シャッフルする、脳に最高のご褒美となるお祝いパターン。
-      const randomAngle = 65 + Math.random() * 50;   // 65度〜115度の間でランダム（勢いよく真上に弾ける）
-      const randomSpread = 60 + Math.random() * 40;  // 飛び散る広がり幅
-      const randomX = 0.3 + Math.random() * 0.4;     // 画面の左右位置を少し散らす
+      // 通常マスのレベル100達成：脳に最高のご褒美となるお祝いパターン。
+      const randomAngle = 65 + Math.random() * 50;   
+      const randomSpread = 60 + Math.random() * 40;  
+      const randomX = 0.3 + Math.random() * 0.4;     
 
       confetti({
-        particleCount: 110 + Math.floor(Math.random() * 50), // 連打したときお祝いの数にも心地よいバラつきを持たせる
+        particleCount: 110 + Math.floor(Math.random() * 50),
         angle: randomAngle,
         spread: randomSpread,
         velocity: 32 + Math.random() * 12,
         origin: { x: randomX, y: 0.65 }
-        // 色を指定しないことで、ライブラリ本来の鮮やかで超高輝度な全カラーが美しく弾け飛びます！
       });
     };
 
@@ -263,7 +246,6 @@
       return { title: "👑レジェンド・創造主", color: "text-yellow-300 animate-pulse", bg: "bg-gradient-to-r from-yellow-500/20 to-red-500/20" };
     };
 
-    // 初期セルのテンプレート生成
     const createInitialCells = (clean = false) => {
       const cells = {};
       
@@ -271,21 +253,21 @@
         0: { // 知性・学習
           4: "リベラルアーツと\nコーチングスキルの探求",
           0: "毎月4冊 of 読書習慣", 1: "プロコーチ資格の取得", 2: "システム思考 of 勉強", 3: "哲学・歴史書を読み解く",
-          5: "言語学習 of デイリー継続", 6: "メンターとの定期セッション", 7: "学んだ知見の図解・発信", 8: "デイリージャーナルの記入"
+          5: "言語学習 of デイリー継続", 6: "メンターとの定期セッション", 7: "学んだ知見 of 図解・発信", 8: "デイリージャーナルの記入"
         },
         1: { // 仕事・キャリア
           4: "自律型組織 of 共創と\nビジネスの好循環",
-          0: "ビジョン・ミッション再定義", 1: "新規プロジェクトのプロト", 2: "週1回の1on1ミーティング", 3: "権限移譲と自律サポート",
+          0: "ビジョン・ミッション再定義", 1: "新規プロジェクト of プロト", 2: "週1回の1on1ミーティング", 3: "権限移譲と自律サポート",
           5: "業務自動化による効率化", 6: "戦略的パートナーシップ構築", 7: "顧客フィードバック of 高速循環", 8: "リーダーシップ研修の開催"
         },
         2: { // 社会貢献・公益
           4: "地域コミュニティ活性化と\n公益への持続的還元",
           0: "地域公益活動への積極参画", 1: "自律コミュニティの立ち上げ", 2: "異業種ネットワーキング", 3: "若手世代の自立伴走メンター",
-          5: "活動拠点のスペース提供", 6: "チャリティプロジェクト企画", 7: "地元イベントの企画・協賛", 8: "社会的投資(ソーシャルビジネス)"
+          5: "活動拠点的スペース提供", 6: "チャリティプロジェクト企画", 7: "地元イベントの企画・協賛", 8: "社会的投資(ソーシャルビジネス)"
         },
         3: { // 心・精神性
           4: "マインドフルネスの確立と\n揺るぎない自己信頼",
-          0: "朝20分の瞑想習慣", 1: "感謝日記の毎晩アウトプット", 2: "感情のセルフモニタリング", 3: "週末デジタルデトックス",
+          0: "朝20分の瞑想習慣", 1: "感謝日記 of 毎晩アウトプット", 2: "感情のセルフモニタリング", 3: "週末デジタルデトックス",
           5: "心のノイズを削ぎ落とす", 6: "聖典や名著からの学び", 7: "自然と調和する時間の確保", 8: "自己一致 of ライフワーク追求"
         },
         4: { // 人生の大目標
@@ -294,13 +276,13 @@
           1: "自律型組織 of 共創と\nビジネス of 好循環",
           2: "地域コミュニティ活性化と\n公益への持続的還元",
           3: "マインドフルネスの確立と\n揺るぎない自己信頼",
-          5: "ウェルネスの追求と\nベストパフォーマンス維持",
+          5: "ウェルネス of 追求と\nベストパフォーマンス維持",
           6: "日常にパッションを取り入れ\n豊かな生き方を体現する",
           7: "持続可能な資産構築と\n公益還元の基盤設計",
           8: "愛に満ちた家庭環境と\n子供への100%伴走サポート"
         },
         5: { // 健康・身体
-          4: "ウェルネスの追求と\nベストパフォーマンス維持",
+          4: "ウェルネス of 追求と\nベストパフォーマンス維持",
           0: "週3回のランニング＆ジム", 1: "毎日7時間の高品質睡眠", 2: "オーガニック・無添加食事", 3: "年1回の人間ドック徹底受診",
           5: "ストレッチでの柔軟性維持", 6: "呼吸法と整いサウナ習慣", 7: "水分補給と健康ログ記録", 8: "体幹・姿勢リセット調整"
         },
@@ -316,7 +298,7 @@
         },
         8: { // 家族・パートナーシップ
           4: "愛に満ちた家庭環境と\n子供への100%伴走サポート",
-          0: "感謝と労いの日常的な言葉掛け", 1: "週末の家族だんらんディナー", 2: "パートナーとの対話時間の確保", 3: "子供のテニス試合の全力応援",
+          0: "感謝と労いの日常的な言葉掛け", 1: "週末の家族だんらんディナー", 2: "パートナーとの対話時間の確保", 3: "子供のテニス試合 of 全力応援",
           5: "快適で整ったリビング空間", 6: "親族・両親への定期的連絡", 7: "記念日のパーソナルサプライズ", 8: "家族みんなで創る未来ビジョン"
         }
       };
@@ -351,15 +333,9 @@
             const parsed = JSON.parse(saved);
             let isValid = true;
             for (let b = 0; b < 9; b++) {
-              if (!parsed[b] || typeof parsed[b] !== 'object') {
-                isValid = false;
-                break;
-              }
+              if (!parsed[b] || typeof parsed[b] !== 'object') { isValid = false; break; }
               for (let c = 0; c < 9; c++) {
-                if (!parsed[b][c] || typeof parsed[b][c] !== 'object' || parsed[b][c].level === undefined) {
-                  isValid = false;
-                  break;
-                }
+                if (!parsed[b][c] || typeof parsed[b][c] !== 'object' || parsed[b][c].level === undefined) { isValid = false; break; }
               }
             }
             if (isValid) return parsed;
@@ -391,9 +367,7 @@
             if (parsed && typeof parsed === 'object' && parsed[8] !== undefined) return parsed;
           }
         } catch(e){}
-        return {
-          0: 165, 1: 215, 2: 190, 3: 275, 4: 345, 5: 105, 6: 38, 7: 48, 8: 325
-        };
+        return { 0: 165, 1: 215, 2: 190, 3: 275, 4: 345, 5: 105, 6: 38, 7: 48, 8: 325 };
       });
       
       const [selectedCell, setSelectedCell] = useState({ b: 4, c: 4 });
@@ -431,71 +405,38 @@
       const touchStartOffsetRef = useRef({ x: 0, y: 0 });
       const touchStartCenterRef = useRef({ x: 0, y: 0 });
 
-      useEffect(() => {
-        localStorage.setItem("mandala_rpg_cells_v3", JSON.stringify(cells));
-      }, [cells]);
+      useEffect(() => { localStorage.setItem("mandala_rpg_cells_v3", JSON.stringify(cells)); }, [cells]);
+      useEffect(() => { localStorage.setItem("mandala_rpg_project_name_v3", projectName); }, [projectName]);
+      useEffect(() => { localStorage.setItem("mandala_rpg_block_names_v3", JSON.stringify(blockNames)); }, [blockNames]);
+      useEffect(() => { localStorage.setItem("mandala_rpg_block_hues_v3", JSON.stringify(blockHues)); }, [blockHues]);
 
-      useEffect(() => {
-        localStorage.setItem("mandala_rpg_project_name_v3", projectName);
-      }, [projectName]);
-
-      useEffect(() => {
-        localStorage.setItem("mandala_rpg_block_names_v3", JSON.stringify(blockNames));
-      }, [blockNames]);
-
-      useEffect(() => {
-        localStorage.setItem("mandala_rpg_block_hues_v3", JSON.stringify(blockHues));
-      }, [blockHues]);
-
-      const showToast = (msg) => {
-        setToastText(msg);
-        setTimeout(() => setToastText(""), 2500);
-      };
+      const showToast = (msg) => { setToastText(msg); setTimeout(() => setToastText(""), 2500); };
 
       const handleResizeAndOrientation = () => {
         const width = window.innerWidth;
         const height = window.innerHeight;
-        
         const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         const hasTouchScreen = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-        
         const mobile = isMobileUA || (hasTouchScreen && width < 1024);
         const landscape = height < 550 && width > height;
-
         setIsMobile(mobile || landscape);
         setIsLandscape(landscape);
-
-        if (!mobile && !landscape) {
-          setIsSidebarOpen(true);
-        } else {
-          setIsSidebarOpen(false);
-        }
+        if (!mobile && !landscape) { setIsSidebarOpen(true); } else { setIsSidebarOpen(false); }
       };
 
-      // 画面ピッタリにフィットさせる超強力スケーリングシステム
       const fitToScreen = useCallback(() => {
         if (!boardContainerRef.current) return;
         const containerWidth = boardContainerRef.current.clientWidth;
         const containerHeight = boardContainerRef.current.clientHeight;
-        
         if (containerWidth < 50 || containerHeight < 50) return;
-        
-        const boardW = 1722;
-        const boardH = 1137;
-
-        const scaleX = containerWidth / boardW;
-        const scaleY = containerHeight / boardH;
-        
+        const boardW = 1722; const boardH = 1137;
+        const scaleX = containerWidth / boardW; const scaleY = containerHeight / boardH;
         const marginFactor = isMobile ? 0.96 : 0.94;
         const bestScale = Math.min(scaleX, scaleY) * marginFactor;
-
         const clampedScale = Math.max(0.12, Math.min(2.0, bestScale));
-        
         const offsetX = (containerWidth - boardW * clampedScale) / 2;
         const offsetY = (containerHeight - boardH * clampedScale) / 2;
-
-        setScale(clampedScale);
-        setScrollOffset({ x: offsetX, y: offsetY });
+        setScale(clampedScale); setScrollOffset({ x: offsetX, y: offsetY });
       }, [isMobile]);
 
       useEffect(() => {
@@ -506,118 +447,62 @@
 
       useEffect(() => {
         if (!boardContainerRef.current) return;
-        
-        const observer = new ResizeObserver(() => {
-          window.requestAnimationFrame(() => {
-            fitToScreen();
-          });
-        });
-        
+        const observer = new ResizeObserver(() => { window.requestAnimationFrame(() => { fitToScreen(); }); });
         observer.observe(boardContainerRef.current);
         return () => observer.disconnect();
       }, [fitToScreen, isSidebarOpen, zoomBlock]);
 
       useEffect(() => {
-        const board = boardContainerRef.current;
-        if (!board) return;
-
+        const board = boardContainerRef.current; if (!board) return;
         const handleWheel = (e) => {
           e.preventDefault();
-          const zoomFactor = 1.06;
-          let nextScale = scale;
-          
-          if (e.deltaY < 0) {
-            nextScale = Math.min(2.0, scale * zoomFactor);
-          } else {
-            nextScale = Math.max(0.12, scale / zoomFactor);
-          }
-
+          const zoomFactor = 1.06; let nextScale = scale;
+          if (e.deltaY < 0) { nextScale = Math.min(2.0, scale * zoomFactor); } else { nextScale = Math.max(0.12, scale / zoomFactor); }
           if (nextScale === scale) return;
-
           const rect = board.getBoundingClientRect();
-          const mouseX = e.clientX - rect.left;
-          const mouseY = e.clientY - rect.top;
-
-          const boardX = (mouseX - scrollOffset.x) / scale;
-          const boardY = (mouseY - scrollOffset.y) / scale;
-
-          const nextOffsetX = mouseX - boardX * nextScale;
-          const nextOffsetY = mouseY - boardY * nextScale;
-
-          setScale(nextScale);
-          setScrollOffset({ x: nextOffsetX, y: nextOffsetY });
+          const mouseX = e.clientX - rect.left; const mouseY = e.clientY - rect.top;
+          const boardX = (mouseX - scrollOffset.x) / scale; const boardY = (mouseY - scrollOffset.y) / scale;
+          const nextOffsetX = mouseX - boardX * nextScale; const nextOffsetY = mouseY - boardY * nextScale;
+          setScale(nextScale); setScrollOffset({ x: nextOffsetX, y: nextOffsetY });
         };
-
         board.addEventListener('wheel', handleWheel, { passive: false });
-        return () => {
-          board.removeEventListener('wheel', handleWheel);
-        };
+        return () => { board.removeEventListener('wheel', handleWheel); };
       }, [scale, scrollOffset]);
 
       useEffect(() => {
-        const container = boardContainerRef.current;
-        if (!container) return;
-
+        const container = boardContainerRef.current; if (!container) return;
         const handleTouchStart = (e) => {
           if (e.touches.length === 2) {
-            e.preventDefault();
-            isPinchingRef.current = true;
-            setIsDragging(false);
-
+            e.preventDefault(); isPinchingRef.current = true; setIsDragging(false);
             const dist = getDistance(e.touches[0], e.touches[1]);
-            touchStartDistRef.current = dist;
-            touchStartScaleRef.current = scale;
-            
+            touchStartDistRef.current = dist; touchStartScaleRef.current = scale;
             const center = getCenter(e.touches[0], e.touches[1]);
-            touchStartCenterRef.current = center;
-            touchStartOffsetRef.current = { ...scrollOffset };
+            touchStartCenterRef.current = center; touchStartOffsetRef.current = { ...scrollOffset };
           } else if (e.touches.length === 1 && !isPinchingRef.current) {
-            const touch = e.touches[0];
-            handleDragStart(touch.clientX, touch.clientY, e.target);
+            handleDragStart(e.touches[0].clientX, e.touches[0].clientY, e.target);
           }
         };
-
         const handleTouchMove = (e) => {
           if (e.touches.length === 2 && isPinchingRef.current) {
-            e.preventDefault();
-            const dist = getDistance(e.touches[0], e.touches[1]);
+            e.preventDefault(); const dist = getDistance(e.touches[0], e.touches[1]);
             const currentScale = touchStartScaleRef.current * (dist / touchStartDistRef.current);
             const clampedScale = Math.max(0.12, Math.min(2.0, currentScale));
-
             const rect = container.getBoundingClientRect();
             const center = getCenter(e.touches[0], e.touches[1]);
-
-            const centerX = center.x - rect.left;
-            const centerY = center.y - rect.top;
-
-            const startCenterX = touchStartCenterRef.current.x - rect.left;
-            const startCenterY = touchStartCenterRef.current.y - rect.top;
-
+            const centerX = center.x - rect.left; const centerY = center.y - rect.top;
+            const startCenterX = touchStartCenterRef.current.x - rect.left; const startCenterY = touchStartCenterRef.current.y - rect.top;
             const boardX = (startCenterX - touchStartOffsetRef.current.x) / touchStartScaleRef.current;
             const boardY = (startCenterY - touchStartOffsetRef.current.y) / touchStartScaleRef.current;
-
-            const nextOffsetX = centerX - boardX * clampedScale;
-            const nextOffsetY = centerY - boardY * clampedScale;
-
-            setScale(clampedScale);
-            setScrollOffset({ x: nextOffsetX, y: nextOffsetY });
+            const nextOffsetX = centerX - boardX * clampedScale; const nextOffsetY = centerY - boardY * clampedScale;
+            setScale(clampedScale); setScrollOffset({ x: nextOffsetX, y: nextOffsetY });
           } else if (e.touches.length === 1 && !isPinchingRef.current) {
-            const touch = e.touches[0];
-            handleDragMove(touch.clientX, touch.clientY);
+            handleDragMove(e.touches[0].clientX, e.touches[0].clientY);
           }
         };
-
-        const handleTouchEnd = (e) => {
-          if (e.touches.length < 2) {
-            isPinchingRef.current = false;
-          }
-          handleDragEnd();
-        };
-
+        const handleTouchEnd = (e) => { if (e.touches.length < 2) isPinchingRef.current = false; handleDragEnd(); };
         container.addEventListener('touchstart', handleTouchStart, { passive: false });
         container.addEventListener('touchmove', handleTouchMove, { passive: false });
         container.addEventListener('touchend', handleTouchEnd);
-
         return () => {
           container.removeEventListener('touchstart', handleTouchStart);
           container.removeEventListener('touchmove', handleTouchMove);
@@ -628,691 +513,123 @@
       const currentCellData = cells?.[selectedCell.b]?.[selectedCell.c] || { text: "", level: 0, memo: "" };
 
       const handleDragStart = (clientX, clientY, target) => {
-        if (
-          target.closest('.no-drag') || 
-          target.tagName === 'INPUT' || 
-          target.tagName === 'TEXTAREA' || 
-          target.tagName === 'SELECT' || 
-          target.tagName === 'BUTTON'
-        ) {
-          return;
-        }
-
-        setIsDragging(true);
-        isMoved.current = false;
-        dragStartPos.current = { x: clientX, y: clientY };
-        setDragStart({ x: clientX - scrollOffset.x, y: clientY - scrollOffset.y });
+        if (target.closest('.no-drag') || target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.tagName === 'BUTTON') return;
+        setIsDragging(true); isMoved.current = false; dragStartPos.current = { x: clientX, y: clientY }; setDragStart({ x: clientX - scrollOffset.x, y: clientY - scrollOffset.y });
       };
-
       const handleDragMove = (clientX, clientY) => {
-        if (!isDragging) return;
-        
-        const dx = Math.abs(clientX - dragStartPos.current.x);
-        const dy = Math.abs(clientY - dragStartPos.current.y);
-        
-        if (dx > 4 || dy > 4) {
-          isMoved.current = true;
-        }
-
-        setScrollOffset({
-          x: clientX - dragStart.x,
-          y: clientY - dragStart.y
-        });
+        if (!isDragging) return; const dx = Math.abs(clientX - dragStartPos.current.x); const dy = Math.abs(clientY - dragStartPos.current.y); if (dx > 4 || dy > 4) isMoved.current = true;
+        setScrollOffset({ x: clientX - dragStart.x, y: clientY - dragStart.y });
       };
-
-      const onMouseDown = (e) => {
-        handleDragStart(e.clientX, e.clientY, e.target);
-      };
-
-      const onMouseMove = (e) => {
-        handleDragMove(e.clientX, e.clientY);
-      };
-
-      const handleDragEnd = () => {
-        setIsDragging(false);
-      };
+      const onMouseDown = (e) => { handleDragStart(e.clientX, e.clientY, e.target); };
+      const onMouseMove = (e) => { handleDragMove(e.clientX, e.clientY); };
+      const handleDragEnd = () => { setIsDragging(false); };
 
       const changeScaleStep = (delta) => {
-        const container = boardContainerRef.current;
-        if (!container) return;
-        
-        const rect = container.getBoundingClientRect();
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
-
-        const boardX = (centerX - scrollOffset.x) / scale;
-        const boardY = (centerY - scrollOffset.y) / scale;
-
-        const nextScale = Math.max(0.12, Math.min(2.0, scale + delta));
-        const nextOffsetX = centerX - boardX * nextScale;
-        const nextOffsetY = centerY - boardY * nextScale;
-
-        setScale(nextScale);
-        setScrollOffset({ x: nextOffsetX, y: nextOffsetY });
+        const container = boardContainerRef.current; if (!container) return; const rect = container.getBoundingClientRect(); const centerX = rect.width / 2; const centerY = rect.height / 2;
+        const boardX = (centerX - scrollOffset.x) / scale; const boardY = (centerY - scrollOffset.y) / scale;
+        const nextScale = Math.max(0.12, Math.min(2.0, scale + delta)); const nextOffsetX = centerX - boardX * nextScale; const nextOffsetY = centerY - boardY * nextScale;
+        setScale(nextScale); setScrollOffset({ x: nextOffsetX, y: nextOffsetY });
       };
 
       const getCellColorAndStyle = (b, c, level) => {
-        if (printEconomy) {
-          if (b === 4 && c === 4) {
-            return { className: "border-2 border-black bg-slate-100 text-black", style: {} };
-          }
-          return { className: "border border-slate-300 bg-white text-black", style: {} };
-        }
-
-        const hue = blockHues[b] || 0;
-
-        if (level === 0) {
-          return {
-            className: "border border-slate-800 text-slate-300 shadow-inner hover:border-slate-700/60",
-            style: { background: `hsl(${hue}, 20%, 15%)` }
-          };
-        }
-
-        if (level === 100) {
-          return {
-            className: "animate-aurora border-[3px] border-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.7)] text-slate-900 font-black relative overflow-hidden",
-            style: {
-              background: `linear-gradient(135deg, hsl(${hue}, 95%, 65%), hsl(${(hue + 120) % 360}, 95%, 70%), hsl(${(hue + 240) % 360}, 95%, 65%))`,
-            }
-          };
-        }
-
-        let bgStyle = {};
-        let className = "border-slate-800 text-slate-100";
-
-        if (level <= 30) {
-          const progress = (level - 1) / 29;
-          const s = 25 + progress * 15; 
-          const l = 28 + progress * 5;  
-          bgStyle = { background: `hsl(${hue}, ${s}%, ${l}%)` };
-          className = "border border-slate-700/50 shadow-inner";
-        } else if (level <= 60) {
-          const progress = (level - 31) / 29;
-          const s = 40 + progress * 20; 
-          const l = 33 + progress * 5;  
-          bgStyle = {
-            background: `linear-gradient(135deg, hsl(${hue}, ${s}%, ${l}%), #2c3e50)`
-          };
-          className = "border-[1.5px] border-slate-400/60 shadow-[0_0_12px_rgba(148,163,184,0.18)]";
-        } else if (level <= 90) {
-          const progress = (level - 61) / 29;
-          const s = 60 + progress * 25; 
-          const l = 38 - progress * 5;  
-          bgStyle = {
-            background: `linear-gradient(135deg, hsl(${hue}, ${s}%, ${l}%), #713f12)`
-          };
-          className = "border-2 border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.22)] font-semibold";
-        } else {
-          const progress = (level - 91) / 8;
-          const s = 85 + progress * 13; 
-          const l = 34 + progress * 5;  
-          bgStyle = {
-            background: `linear-gradient(135deg, hsl(${hue}, ${s}%, ${l}%), #0891b2, hsl(${(hue + 45) % 360}, 95%, 45%))`
-          };
-          className = "border-2 border-cyan-400 shadow-[0_0_18px_rgba(6,182,212,0.35)] font-extrabold animate-pulse-slow";
-        }
-
+        if (printEconomy) { if (b === 4 && c === 4) return { className: "border-2 border-black bg-slate-100 text-black", style: {} }; return { className: "border border-slate-300 bg-white text-black", style: {} }; }
+        const hue = blockHues[b] || 0; if (level === 0) return { className: "border border-slate-800 text-slate-300 shadow-inner hover:border-slate-700/60", style: { background: `hsl(${hue}, 20%, 15%)` } };
+        if (level === 100) return { className: "animate-aurora border-[3px] border-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.7)] text-slate-900 font-black relative overflow-hidden", style: { background: `linear-gradient(135deg, hsl(${hue}, 95%, 65%), hsl(${(hue + 120) % 360}, 95%, 70%), hsl(${(hue + 240) % 360}, 95%, 65%))` } };
+        let bgStyle = {}; let className = "border-slate-800 text-slate-100";
+        if (level <= 30) { const progress = (level - 1) / 29; bgStyle = { background: `hsl(${hue}, ${25 + progress * 15}%, ${28 + progress * 5}%)` }; className = "border border-slate-700/50 shadow-inner"; }
+        else if (level <= 60) { const progress = (level - 31) / 29; bgStyle = { background: `linear-gradient(135deg, hsl(${hue}, ${40 + progress * 20}%, ${33 + progress * 5}%), #2c3e50)` }; className = "border-[1.5px] border-slate-400/60 shadow-[0_0_12px_rgba(148,163,184,0.18)]"; }
+        else if (level <= 90) { const progress = (level - 61) / 29; bgStyle = { background: `linear-gradient(135deg, hsl(${hue}, ${60 + progress * 25}%, ${38 - progress * 5}%), #713f12)` }; className = "border-2 border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.22)] font-semibold"; }
+        else { const progress = (level - 91) / 8; bgStyle = { background: `linear-gradient(135deg, hsl(${hue}, ${85 + progress * 13}%, ${34 + progress * 5}%), #0891b2, hsl(${(hue + 45) % 360}, 95%, 45%))` }; className = "border-2 border-cyan-400 shadow-[0_0_18px_rgba(6,182,212,0.35)] font-extrabold animate-pulse-slow"; }
         return { className, style: bgStyle };
       };
 
       const updateCellData = (b, c, updates) => {
         setCells(prev => {
-          const next = JSON.parse(JSON.stringify(prev));
-          if (!next[b]) next[b] = {};
-          if (!next[b][c]) next[b][c] = { text: "", level: 0, memo: "" };
-          
+          const next = JSON.parse(JSON.stringify(prev)); if (!next[b]) next[b] = {}; if (!next[b][c]) next[b][c] = { text: "", level: 0, memo: "" };
           next[b][c] = { ...next[b][c], ...updates };
-
-          if (b !== 4 && c === 4) {
-            if (!next[4]) next[4] = {};
-            if (!next[4][b]) next[4][b] = { text: "", level: 0, memo: "" };
-            next[4][b].text = next[b][4].text;
-            next[4][b].memo = next[b][4].memo;
-          } else if (b === 4 && c !== 4) {
-            if (!next[c]) next[c] = {};
-            if (!next[c][4]) next[c][4] = { text: "", level: 0, memo: "" };
-            next[c][4].text = next[4][c].text;
-            next[c][4].memo = next[4][c].memo;
-          }
-
-          for (let i = 0; i < 9; i++) {
-            if (i === 4) continue;
-            let sum = 0;
-            for (let j = 0; j < 9; j++) {
-              if (j === 4) continue;
-              sum += next[i]?.[j]?.level || 0;
-            }
-            const avg = Math.round(sum / 8);
-            if (!next[i]) next[i] = {};
-            if (!next[i][4]) next[i][4] = { text: "", level: 0, memo: "" };
-            if (!next[4]) next[4] = {};
-            if (!next[4][i]) next[4][i] = { text: "", level: 0, memo: "" };
-            
-            next[i][4].level = avg;
-            next[4][i].level = avg;
-          }
-
-          let centerSum = 0;
-          for (let i = 0; i < 9; i++) {
-            if (i === 4) continue;
-            centerSum += next[4]?.[i]?.level || 0;
-          }
-          const centerAvg = Math.round(centerSum / 8);
-
-          if (!next[4]) next[4] = {};
-          if (!next[4][4]) next[4][4] = { text: "", level: 0, memo: "" };
-
-          // 最中心の大目標平均がLv.100に達した時
-          if (next[4][4].level !== centerAvg && centerAvg === 100) {
-            setTimeout(() => triggerConfettiShow(true), 350);
-          }
-          next[4][4].level = centerAvg;
-
-          return next;
+          if (b !== 4 && c === 4) { if (!next[4]) next[4] = {}; if (!next[4][b]) next[4][b] = { text: "", level: 0, memo: "" }; next[4][b].text = next[b][4].text; next[4][b].memo = next[b][4].memo; }
+          else if (b === 4 && c !== 4) { if (!next[c]) next[c] = {}; if (!next[c][4]) next[c][4] = { text: "", level: 0, memo: "" }; next[c][4].text = next[4][c].text; next[c][4].memo = next[4][c].memo; }
+          for (let i = 0; i < 9; i++) { if (i === 4) continue; let sum = 0; for (let j = 0; j < 9; j++) { if (j === 4) continue; sum += next[i]?.[j]?.level || 0; } const avg = Math.round(sum / 8); if (!next[i]) next[i] = {}; if (!next[i][4]) next[i][4] = { text: "", level: 0, memo: "" }; if (!next[4]) next[4] = {}; if (!next[4][i]) next[4][i] = { text: "", level: 0, memo: "" }; next[i][4].level = avg; next[4][i].level = avg; }
+          let centerSum = 0; for (let i = 0; i < 9; i++) { if (i === 4) continue; centerSum += next[4]?.[i]?.level || 0; } const centerAvg = Math.round(centerSum / 8); if (!next[4]) next[4] = {}; if (!next[4][4]) next[4][4] = { text: "", level: 0, memo: "" };
+          if (next[4][4].level !== centerAvg && centerAvg === 100) { setTimeout(() => triggerConfettiShow(true), 350); } next[4][4].level = centerAvg; return next;
         });
-
-        // 叩いた個別の通常マスがLv.100になった時（極限お祝い関数をシンプルに発火！）
-        if (updates.level === 100) {
-          triggerConfettiShow(false);
-        }
+        if (updates.level === 100) triggerConfettiShow(false);
       };
 
-      const adjustLevel = (b, c, delta) => {
-        if (b === 4 || c === 4) return; 
-        const currentLvl = cells?.[b]?.[c]?.level || 0;
-        const nextLvl = Math.max(0, Math.min(100, currentLvl + delta));
-        updateCellData(b, c, { level: nextLvl });
+      const adjustLevel = (b, c, delta) => { if (b === 4 || c === 4) return; const nextLvl = Math.max(0, Math.min(100, (cells?.[b]?.[c]?.level || 0) + delta)); updateCellData(b, c, { level: nextLvl }); };
+      
+      const startInlineEdit = (b, c, e) => { 
+        if (e) e.stopPropagation(); 
+        setBackupZoomBlock(zoomBlock); 
+        setZoomBlock(b); 
+        setEditingCell({ b, c }); 
+        setInlineText(cells?.[b]?.[c]?.text || ""); 
       };
 
-      // 編集開始
-      const startInlineEdit = (b, c, e) => {
-        if (e) e.stopPropagation();
-        
-        // 編集前のクローズアップ状態を記憶しておく
-        setBackupZoomBlock(zoomBlock);
-        
-        // 編集中の3x3ブロックを自動クローズアップ展開
-        setZoomBlock(b);
-        
-        setEditingCell({ b, c });
-        setInlineText(cells?.[b]?.[c]?.text || "");
+      const saveInlineEdit = () => { 
+        if (editingCell) { 
+          updateCellData(editingCell.b, editingCell.c, { text: inlineText }); 
+          setZoomBlock(backupZoomBlock !== undefined ? backupZoomBlock : null);
+          setEditingCell(null); 
+        } 
       };
 
-      // 編集終了
-      const saveInlineEdit = () => {
-        if (editingCell) {
-          updateCellData(editingCell.b, editingCell.c, { text: inlineText });
-          
-          // 編集を開始する前のズーム状態に完全復元
-          setZoomBlock(backupZoomBlock);
-          
-          setEditingCell(null);
-        }
+      const cancelInlineEdit = () => {
+        setZoomBlock(backupZoomBlock !== undefined ? backupZoomBlock : null);
+        setEditingCell(null);
       };
 
-      const startBlockNameEdit = (idx, e) => {
-        if (e) e.stopPropagation();
-        setEditingBlockNameIdx(idx);
-        setTempBlockName(blockNames[idx] || "");
-      };
+      const startBlockNameEdit = (idx, e) => { if (e) e.stopPropagation(); setEditingBlockNameIdx(idx); setTempBlockName(blockNames[idx] || ""); };
+      const saveBlockNameEdit = (idx) => { if (tempBlockName.trim() === "") return; setBlockNames(prev => ({ ...prev, [idx]: tempBlockName })); setEditingBlockNameIdx(null); showToast(`領域名を「${tempBlockName}」に変更しました`); };
 
-      const saveBlockNameEdit = (idx) => {
-        if (tempBlockName.trim() === "") return;
-        setBlockNames(prev => ({ ...prev, [idx]: tempBlockName }));
-        setEditingBlockNameIdx(null);
-        showToast(`領域名を「${tempBlockName}」に変更しました`);
-      };
-
-      const triggerSystemConfirm = (type, title, text, onConfirm) => {
-        setDialogState({ show: true, type, title, text, onConfirm });
-      };
-
-      const handleFactoryReset = () => {
-        triggerSystemConfirm(
-          "danger",
-          "傑作デモ復元",
-          "現在の入力データを全て消去し、コーチング・ライフプラン最適化のデフォルトテンプレート（Lv.0スタート）に完全復元します。よろしいですか？",
-          () => {
-            const fresh = createInitialCells(false);
-            setCells(fresh);
-            setBlockNames({ ...DEFAULT_BLOCK_NAMES });
-            setBlockHues({ 0: 165, 1: 215, 2: 190, 3: 275, 4: 345, 5: 105, 6: 38, 7: 48, 8: 325 });
-            setProjectName("ライフキャリア・クロニクル");
-            setSelectedCell({ b: 4, c: 4 });
-            setDialogState({ show: false });
-            setTimeout(fitToScreen, 100);
-            showToast("デモのコーチング設計図を復元しました！");
-          }
-        );
-      };
-
-      const handleClearAll = () => {
-        triggerSystemConfirm(
-          "warning",
-          "ゼロから白紙化",
-          "すべての文字を真っ白にクリアし、レベルも完全に「0」にリセットします。あなたの独自のテーマ（テニスや新規ビジネスなど）で白紙からスタートします。よろしいですか？",
-          () => {
-            const fresh = createInitialCells(true);
-            setCells(fresh);
-            const neutralNames = {};
-            for (let i = 0; i < 9; i++) {
-              if (i === 4) neutralNames[i] = "5. 人生の大目標";
-              else neutralNames[i] = `領域 ${i + 1}`;
-            }
-            setBlockNames(neutralNames);
-            setBlockHues({ 0: 215, 1: 145, 2: 345, 3: 275, 4: 235, 5: 165, 6: 20, 7: 48, 8: 85 });
-            setProjectName("マイ・ロードマップ");
-            setSelectedCell({ b: 4, c: 4 });
-            setDialogState({ show: false });
-            setTimeout(fitToScreen, 100);
-            showToast("完全な白紙ボードを用意しました！");
-          }
-        );
-      };
-
-      const exportData = () => {
-        const dataStr = JSON.stringify({ projectName, cells, blockNames, blockHues }, null, 2);
-        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-        const exportFileDefaultName = `${projectName}_mandala_rpg_backup.json`;
-        
-        const linkElement = document.createElement('a');
-        linkElement.setAttribute('href', dataUri);
-        linkElement.setAttribute('download', exportFileDefaultName);
-        linkElement.click();
-        showToast("バックアップJSONを書き出しました");
-      };
-
-      const importData = (e) => {
-        const fileReader = new FileReader();
-        if (e.target.files && e.target.files[0]) {
-          fileReader.readAsText(e.target.files[0], "UTF-8");
-          fileReader.onload = (event) => {
-            try {
-              const parsed = JSON.parse(event.target.result);
-              if (parsed.cells) {
-                setCells(parsed.cells);
-                if (parsed.projectName) setProjectName(parsed.projectName);
-                if (parsed.blockNames) setBlockNames(parsed.blockNames);
-                if (parsed.blockHues) setBlockHues(parsed.blockHues);
-                showToast("バックアップデータを完全に復元ロードしました！");
-              } else {
-                alert("無効なファイル形式です。");
-              }
-            } catch (err) {
-              alert("インポート中にエラーが発生しました。");
-            }
-          };
-        }
-      };
+      const handleFactoryReset = () => { setDialogState({ show: true, type: "danger", title: "傑作デモ復元", text: "現在の入力データを全て消去し、コーチング・ライフプラン最適化のテンプレート（Lv.0スタート）に完全復元します。よろしいですか？", onConfirm: () => { setCells(createInitialCells(false)); setBlockNames({ ...DEFAULT_BLOCK_NAMES }); setBlockHues({ 0: 165, 1: 215, 2: 190, 3: 275, 4: 345, 5: 105, 6: 38, 7: 48, 8: 325 }); setProjectName("ライフキャリア・クロニクル"); setSelectedCell({ b: 4, c: 4 }); setDialogState({ show: false }); setTimeout(fitToScreen, 100); showToast("デモのコーチング設計図を復元しました！"); } }); };
+      const handleClearAll = () => { setDialogState({ show: true, type: "warning", title: "ゼロから白紙化", text: "すべての文字を白紙にクリアし、レベルも完全に「0」にリセットします。あなたの独自のテーマで白紙からスタートします。よろしいですか？", onConfirm: () => { setCells(createInitialCells(true)); const neutralNames = {}; for (let i = 0; i < 9; i++) neutralNames[i] = (i === 4) ? "5. 人生の大目標" : `領域 ${i + 1}`; setBlockNames(neutralNames); setBlockHues({ 0: 215, 1: 145, 2: 345, 3: 275, 4: 235, 5: 165, 6: 20, 7: 48, 8: 85 }); setProjectName("マイ・ロードマップ"); setSelectedCell({ b: 4, c: 4 }); setDialogState({ show: false }); setTimeout(fitToScreen, 100); showToast("完全な白紙ボードを用意しました！"); } }); };
+      
+      const exportData = () => { const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(JSON.stringify({ projectName, cells, blockNames, blockHues }, null, 2)); const link = document.createElement('a'); link.setAttribute('href', dataUri); link.setAttribute('download', `${projectName}_backup.json`); link.click(); showToast("バックアップJSONを書き出しました"); };
+      const importData = (e) => { const reader = new FileReader(); if (e.target.files?.[0]) { reader.readAsText(e.target.files[0], "UTF-8"); reader.onload = (ev) => { try { const parsed = JSON.parse(ev.target.result); if (parsed.cells) { setCells(parsed.cells); setProjectName(parsed.projectName || ""); setBlockNames(parsed.blockNames || {}); setBlockHues(parsed.blockHues || {}); showToast("バックアップデータをロードしました！"); } } catch (err) { alert("インポート中にエラーが発生しました。"); } }; } };
 
       const analyzedStats = useMemo(() => {
-        const sectors = [];
-        let totalAvg = 0;
-        
-        for (let i = 0; i < 9; i++) {
-          if (i === 4) continue;
-          let sum = 0;
-          for (let j = 0; j < 9; j++) {
-            if (j === 4) continue;
-            sum += cells?.[i]?.[j]?.level || 0;
-          }
-          const avg = Math.round(sum / 8);
-          sectors.push({ idx: i, name: blockNames[i] || `領域 ${i+1}`, avg });
-          totalAvg += avg;
-        }
-
+        const sectors = []; let totalAvg = 0;
+        for (let i = 0; i < 9; i++) { if (i === 4) continue; let sum = 0; for (let j = 0; j < 9; j++) { if (j === 4) continue; sum += cells?.[i]?.[j]?.level || 0; } const avg = Math.round(sum / 8); sectors.push({ idx: i, name: blockNames[i] || `領域 ${i+1}`, avg }); totalAvg += avg; }
         const sorted = [...sectors].sort((a, b) => b.avg - a.avg);
-        const strongest = sorted[0] || { name: "未設定" };
-        const focusing = sorted[sorted.length - 1] || { name: "未設定" };
-
-        return {
-          sectors,
-          overall: Math.round(totalAvg / 8),
-          strongest,
-          focusing
-        };
+        return { sectors, overall: Math.round(totalAvg / 8), strongest: sorted[0] || { name: "未設定" }, focusing: sorted[sorted.length - 1] || { name: "未設定" } };
       }, [cells, blockNames]);
 
       const currentRank = getRankTitle(cells?.[4]?.[4]?.level || 0);
 
       return (
         <div className="flex h-full w-full overflow-hidden select-none relative bg-[#070a13]">
-          
-          {/* 通知トースト */}
-          {toastText && (
-            <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-slate-900 border-2 border-cyan-500/80 text-cyan-200 px-6 py-3 rounded-full text-xs font-bold shadow-[0_0_20px_rgba(6,182,212,0.5)] animate-bounce flex items-center gap-2 backdrop-blur">
-              <i className="fa-solid fa-sparkles text-yellow-400"></i>
-              {toastText}
-            </div>
-          )}
+          {toastText && <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-slate-900 border-2 border-cyan-500/80 text-cyan-200 px-6 py-3 rounded-full text-xs font-bold shadow-[0_0_20px_rgba(6,182,212,0.5)] animate-bounce flex items-center gap-2 backdrop-blur"><i className="fa-solid fa-sparkles text-yellow-400"></i>{toastText}</div>}
+          {dialogState.show && <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in no-drag"><div className="w-full max-w-md bg-slate-900 border-2 border-slate-800 rounded-2xl p-6 shadow-2xl relative overflow-hidden"><div className={`absolute top-0 inset-x-0 h-1.5 ${dialogState.type === 'danger' ? 'bg-red-500' : 'bg-yellow-500'}`}></div><h4 className="text-base font-black text-slate-100 flex items-center gap-2 mb-3"><i className={`fa-solid ${dialogState.type === 'danger' ? 'fa-triangle-exclamation text-red-500' : 'fa-circle-info text-yellow-500'}`}></i>{dialogState.title}</h4><p className="text-xs text-slate-300 leading-relaxed mb-6 whitespace-pre-wrap">{dialogState.text}</p><div className="flex justify-end gap-2.5"><button onClick={() => setDialogState({ show: false })} className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-2 px-4 rounded-lg font-bold transition-all border border-slate-700/60">キャンセル</button><button onClick={dialogState.onConfirm} className={`text-white text-xs py-2 px-4 rounded-lg font-bold transition-all shadow-md ${dialogState.type === 'danger' ? 'bg-red-600 hover:bg-red-500' : 'bg-yellow-500 hover:bg-yellow-400 text-slate-950'}`}>確実に実行する</button></div></div></div>}
 
-          {/* カスタムシステムダイアログ */}
-          {dialogState.show && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in no-drag">
-              <div className="w-full max-w-md bg-slate-900 border-2 border-slate-800 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
-                <div className={`absolute top-0 inset-x-0 h-1.5 ${dialogState.type === 'danger' ? 'bg-red-500' : 'bg-yellow-500'}`}></div>
-                <h4 className="text-base font-black text-slate-100 flex items-center gap-2 mb-3">
-                  <i className={`fa-solid ${dialogState.type === 'danger' ? 'fa-triangle-exclamation text-red-500' : 'fa-circle-info text-yellow-500'}`}></i>
-                  {dialogState.title}
-                </h4>
-                <p className="text-xs text-slate-300 leading-relaxed mb-6 whitespace-pre-wrap">{dialogState.text}</p>
-                <div className="flex justify-end gap-2.5">
-                  <button
-                    onClick={() => setDialogState({ show: false })}
-                    className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-2 px-4 rounded-lg font-bold transition-all border border-slate-700/60"
-                  >
-                    キャンセル
-                  </button>
-                  <button
-                    onClick={dialogState.onConfirm}
-                    className={`text-white text-xs py-2 px-4 rounded-lg font-bold transition-all shadow-md ${
-                      dialogState.type === 'danger' ? 'bg-red-600 hover:bg-red-500' : 'bg-yellow-500 hover:bg-yellow-400 text-slate-950'
-                    }`}
-                  >
-                    確実に実行する
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* 左側サイドバー（モバイル時は完全に z-50 かつ fixed、PC時はフレキシブルな通常配置としてスライド開閉） */}
-          <div className={`no-print transition-all duration-300 ease-in-out flex flex-col h-screen bg-[#0d1424] border-r border-slate-800/80 
-            ${isMobile || isLandscape 
-              ? 'fixed inset-y-0 left-0 w-80 shadow-[10px_0_50px_rgba(0,0,0,0.85)] z-50' 
-              : (isSidebarOpen ? 'w-96 min-w-[384px]' : 'w-0 min-w-0 border-r-0 overflow-hidden')
-            }
-            ${!isSidebarOpen ? '-translate-x-full' : 'translate-x-0'}
-            ${fullPrintMode ? 'hidden' : ''}
-          `}>
-            
-            {/* 固定ヘッダー（最上部に常に極小サイズで固定。プロジェクト名と閉じるボタンだけを置くことでスクロール領域を最大化） */}
-            <div className="p-4 border-b border-slate-800/80 flex items-center justify-between gap-2 bg-[#0a0f1c] shrink-0">
-              <div className="flex items-center gap-2 flex-grow">
-                <i className="fa-solid fa-gem text-yellow-500 text-base"></i>
-                <input
-                  type="text"
-                  value={projectName}
-                  onChange={(e) => setProjectName(e.target.value)}
-                  className="bg-transparent font-black text-sm text-slate-100 focus:outline-none border-b border-transparent focus:border-yellow-500/50 w-full px-1 py-0.5"
-                  placeholder="プロジェクト名"
-                />
-              </div>
-              <button
-                onClick={() => setIsSidebarOpen(false)}
-                className="text-slate-400 hover:text-red-400 p-2 rounded-lg hover:bg-slate-800/50 transition-colors no-drag shrink-0 text-xs font-bold flex items-center gap-1"
-                title="サイドバーを隠す"
-              >
-                <span>閉じる</span>
-                <i className="fa-solid fa-chevron-left text-[10px]"></i>
-              </button>
-            </div>
-
-            {/* 【大改造】超広大・統合シングルスクロールエリア（残り高さすべて。モバイル横置きでもスクロールが詰まらず最下部まで100%滑らかに届きます） */}
+          {/* 左サイドバー */}
+          <div className={`no-print transition-all duration-300 ease-in-out flex flex-col h-screen bg-[#0d1424] border-r border-slate-800/80 ${isMobile || isLandscape ? 'fixed inset-y-0 left-0 w-80 shadow-[10px_0_50px_rgba(0,0,0,0.85)] z-50' : (isSidebarOpen ? 'w-96 min-w-[384px]' : 'w-0 min-w-0 border-r-0 overflow-hidden')} ${!isSidebarOpen ? '-translate-x-full' : 'translate-x-0'} ${fullPrintMode ? 'hidden' : ''}`}>
+            <div className="p-4 border-b border-slate-800/80 flex items-center justify-between gap-2 bg-[#0a0f1c] shrink-0"><div className="flex items-center gap-2 flex-grow"><i className="fa-solid fa-gem text-yellow-500 text-base"></i><input type="text" value={projectName} onChange={(e) => setProjectName(e.target.value)} className="bg-transparent font-black text-sm text-slate-100 focus:outline-none border-b border-transparent focus:border-yellow-500/50 w-full px-1 py-0.5" placeholder="プロジェクト名"/></div><button onClick={() => setIsSidebarOpen(false)} className="text-slate-400 hover:text-red-400 p-2 rounded-lg hover:bg-slate-800/50 transition-colors no-drag shrink-0 text-xs font-bold flex items-center gap-1"><span>閉じる</span><i className="fa-solid fa-chevron-left text-[10px]"></i></button></div>
             <div className="flex-grow overflow-y-auto p-4 space-y-4 no-scrollbar bg-[#0d1424]">
-              
-              {/* 1. 大目標進捗インジケーター（スクロールの一部にして高さを節約） */}
-              <div className="bg-slate-900/90 p-3.5 rounded-xl border border-slate-800/60">
-                <div className="flex justify-between items-center text-[10px] mb-1.5">
-                  <span className="text-slate-400 font-bold">最中心大目標ランク</span>
-                  <span className={`font-bold px-2 py-0.5 rounded ${currentRank.bg} ${currentRank.color} text-[9px]`}>{currentRank.title}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-700/50">
-                    <div 
-                      className="bg-gradient-to-r from-amber-500 via-yellow-400 to-cyan-400 h-full rounded-full transition-all duration-500"
-                      style={{ width: `${cells?.[4]?.[4]?.level || 0}%` }}
-                    ></div>
-                  </div>
-                  <span className="text-sm font-black text-yellow-400 min-w-[42px] text-right font-orbitron">Lv.{cells?.[4]?.[4]?.level || 0}</span>
-                </div>
-              </div>
-
-              {/* モバイル表示時またはランドスケープ時のみ設定をインクルード（ヘッダーから移植した全機能がここから完全に操作できます） */}
-              {(isMobile || isLandscape) && (
-                <div className="bg-slate-950 p-3 rounded-xl border border-slate-800/80 space-y-2.5 mt-1 text-[11px] no-drag">
-                  <div className="flex justify-between items-center text-slate-400 font-bold border-b border-slate-900 pb-1.5 mb-1.5">
-                    <span>📱 モバイル設定</span>
-                    <button 
-                      onClick={() => setIsSidebarOpen(false)} 
-                      className="text-red-400 hover:text-red-300 font-bold"
-                    >
-                      閉じる
-                    </button>
-                  </div>
-                  
-                  {/* インク節約 */}
-                  <div className="flex justify-between items-center text-slate-300">
-                    <span>インク節約印刷モード</span>
-                    <button
-                      onClick={() => setPrintEconomy(!printEconomy)}
-                      className={`px-3 py-1 rounded font-bold border text-[10px] transition-all flex items-center gap-1 ${
-                        printEconomy ? 'bg-slate-200 text-slate-950 border-white' : 'bg-slate-900 text-slate-300 border-slate-800'
-                      }`}
-                    >
-                      <i className={`fa-solid ${printEconomy ? 'fa-toggle-on text-emerald-600' : 'fa-toggle-off'}`}></i>
-                      <span>{printEconomy ? "有効" : "無効"}</span>
-                    </button>
-                  </div>
-
-                  {/* 画面にフィット ＆ 印刷 */}
-                  <div className="grid grid-cols-2 gap-2 mt-1">
-                    <button
-                      onClick={() => {
-                        fitToScreen();
-                        setIsSidebarOpen(false); // 利便性のために閉じます
-                      }}
-                      className="bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 py-1.5 rounded text-[10px] font-bold transition-all flex items-center justify-center gap-1.5"
-                    >
-                      <i className="fa-solid fa-expand text-cyan-400"></i>
-                      <span>画面にフィット</span>
-                    </button>
-                    <button
-                      onClick={() => setFullPrintMode(true)}
-                      className="bg-cyan-600 hover:bg-cyan-500 text-white py-1.5 rounded text-[10px] font-bold transition-all flex items-center justify-center gap-1.5 shadow"
-                    >
-                      <i className="fa-solid fa-print"></i>
-                      <span>印刷プレビュー</span>
-                    </button>
-                  </div>
-
-                  {/* ズーム */}
-                  <div className="flex items-center justify-between text-slate-300 border-t border-slate-900 pt-2.5">
-                    <span>手動ズーム調節</span>
-                    <div className="flex items-center gap-1.5 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-850">
-                      <button onClick={() => changeScaleStep(-0.05)} className="w-5.5 h-5.5 rounded bg-slate-800 flex items-center justify-center font-bold text-xs">-</button>
-                      <span className="font-mono text-[10px] min-w-[32px] text-center">{Math.round(scale * 100)}%</span>
-                      <button onClick={() => changeScaleStep(0.05)} className="w-5.5 h-5.5 rounded bg-slate-800 flex items-center justify-center font-bold text-xs">+</button>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              {/* 3. マス目標編集パネル */}
-              <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800/80">
-                <div className="flex justify-between items-start mb-3">
-                  <div className="w-2/3">
-                    <span className="text-[9px] text-slate-400 font-bold tracking-wider uppercase bg-slate-850 px-2 py-0.5 rounded">
-                      BLOCK {selectedCell.b + 1} - CELL {selectedCell.c + 1}
-                    </span>
-                    <h3 className="text-xs font-black text-slate-200 mt-2 flex items-center gap-2 truncate">
-                      <i className={`fa-solid ${selectedCell.b === 4 ? 'fa-crown text-yellow-500' : 'fa-compass text-cyan-400'}`}></i>
-                      {blockNames[selectedCell.b] || ""}
-                    </h3>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[9px] text-slate-400 block font-bold">目標強度</span>
-                    <span className="text-xl font-black text-yellow-400 font-orbitron">Lv.{currentCellData.level}</span>
-                  </div>
-                </div>
-
-                {/* 改行可能テキストエリア */}
-                <div className="space-y-1.5">
-                  <label className="text-[10px] text-slate-400 font-bold block">目標テキスト (Enter改行反映)</label>
-                  <textarea
-                    value={currentCellData.text}
-                    onChange={(e) => updateCellData(selectedCell.b, selectedCell.c, { text: e.target.value })}
-                    rows={3}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-yellow-500 font-medium whitespace-pre-wrap leading-relaxed"
-                    placeholder="ここにマスの行動計画や目標を入力してください..."
-                  />
-                </div>
-
-                {/* レベルスライダー調整 */}
-                <div className="mt-3.5 pt-3.5 border-t border-slate-800/80 space-y-2.5">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] text-slate-400 font-bold">
-                      自律レベル成長
-                      {(selectedCell.b === 4 || selectedCell.c === 4) && <span className="text-red-400 ml-1">(自動ロールアップ対象)</span>}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={() => adjustLevel(selectedCell.b, selectedCell.c, -10)}
-                      disabled={selectedCell.b === 4 || selectedCell.c === 4}
-                      className="bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-[10px] px-2 py-1.5 rounded text-slate-300 font-bold transition-all"
-                    >
-                      -10
-                    </button>
-                    <button
-                      onClick={() => adjustLevel(selectedCell.b, selectedCell.c, -1)}
-                      disabled={selectedCell.b === 4 || selectedCell.c === 4}
-                      className="bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-[10px] px-2 py-1.5 rounded text-slate-300 font-bold transition-all"
-                    >
-                      -1
-                    </button>
-                    
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={currentCellData.level}
-                      onChange={(e) => updateCellData(selectedCell.b, selectedCell.c, { level: parseInt(e.target.value) })}
-                      disabled={selectedCell.b === 4 || selectedCell.c === 4}
-                      className="w-full accent-yellow-500 h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer disabled:opacity-30"
-                    />
-
-                    <button
-                      onClick={() => adjustLevel(selectedCell.b, selectedCell.c, 1)}
-                      disabled={selectedCell.b === 4 || selectedCell.c === 4}
-                      className="bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-[10px] px-2 py-1.5 rounded text-slate-300 font-bold transition-all"
-                    >
-                      +1
-                    </button>
-                    <button
-                      onClick={() => adjustLevel(selectedCell.b, selectedCell.c, 10)}
-                      disabled={selectedCell.b === 4 || selectedCell.c === 4}
-                      className="bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-[10px] px-2 py-1.5 rounded text-slate-300 font-bold transition-all"
-                    >
-                      +10
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* 4. メモ書きログ */}
-              <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800/80 space-y-2">
-                <label className="text-[10px] text-slate-400 font-bold block flex items-center gap-1.5">
-                  <i className="fa-solid fa-pen-nib text-cyan-400"></i>
-                  行動指針・コーチングログ
-                </label>
-                <textarea
-                  value={currentCellData.memo || ""}
-                  onChange={(e) => updateCellData(selectedCell.b, selectedCell.c, { memo: e.target.value })}
-                  rows={2}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-300 focus:outline-none focus:border-cyan-500 font-medium leading-relaxed"
-                  placeholder="具体的な手法や、日々の気付き、テニスや仕事へのアプローチなど..."
-                />
-              </div>
-
-              {/* 5. バランスホイール・調和診断アナライザー */}
-              <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800/80 space-y-3">
-                <span className="text-[10px] text-slate-400 font-bold block flex items-center gap-1.5 border-b border-slate-800/60 pb-1.5">
-                  <i className="fa-solid fa-chart-pie text-emerald-400"></i>
-                  バランスホイール・自律度分析
-                </span>
-                
-                {/* 8つの各ジャンル平均ゲージ */}
-                <div className="space-y-2 text-[10px]">
-                  {analyzedStats.sectors.map((sec, idx) => (
+              <div className="bg-slate-900/90 p-3.5 rounded-xl border border-slate-800/60"><div className="flex justify-between items-center text-[10px] mb-1.5"><span className="text-slate-400 font-bold">最中心大目標ランク</span><span className={`font-bold px-2 py-0.5 rounded ${currentRank.bg} ${currentRank.color} text-[9px]`}>{currentRank.title}</span></div><div className="flex items-center gap-3"><div className="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-700/50"><div className="bg-gradient-to-r from-amber-500 via-yellow-400 to-cyan-400 h-full rounded-full transition-all duration-500" style={{ width: `${cells?.[4]?.[4]?.level || 0}%` }}></div></div><span className="text-xs font-black text-yellow-400 min-w-[38px] text-right font-orbitron">Lv.{cells?.[4]?.[4]?.level || 0}</span></div></div>
+              {(isMobile || isLandscape) && (<div className="bg-slate-950 p-3 rounded-xl border border-slate-800/80 space-y-2.5 mt-1 text-[11px] no-drag"><div className="flex justify-between items-center text-slate-400 font-bold border-b border-slate-900 pb-1.5 mb-1.5"><span>📱 モバイル設定</span><button onClick={() => setIsSidebarOpen(false)} className="text-red-400 hover:text-red-300 font-bold">閉じる</button></div><div className="flex justify-between items-center text-slate-300"><span>インク節約印刷モード</span><button onClick={() => setPrintEconomy(!printEconomy)} className={`px-3 py-1 rounded font-bold border text-[10px] transition-all flex items-center gap-1 ${printEconomy ? 'bg-slate-200 text-slate-950 border-white' : 'bg-slate-900 text-slate-300 border-slate-800'}`}><i className={`fa-solid ${printEconomy ? 'fa-toggle-on text-emerald-600' : 'fa-toggle-off'}`}></i><span>{printEconomy ? "有効" : "無効"}</span></button></div><div className="grid grid-cols-2 gap-2 mt-1"><button onClick={() => { fitToScreen(); setIsSidebarOpen(false); }} className="bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 py-1.5 rounded text-[10px] font-bold transition-all flex items-center justify-center gap-1.5"><i className="fa-solid fa-expand text-cyan-400"></i><span>画面にフィット</span></button><button onClick={() => setFullPrintMode(true)} className="bg-cyan-600 hover:bg-cyan-500 text-white py-1.5 rounded text-[10px] font-bold transition-all flex items-center justify-center gap-1.5 shadow"><i className="fa-solid fa-print"></i><span>印刷プレビュー</span></button></div><div className="flex items-center justify-between text-slate-300 border-t border-slate-900 pt-2.5"><span>手動ズーム調節</span><div className="flex items-center gap-1.5 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-850"><button onClick={() => changeScaleStep(-0.05)} className="w-5.5 h-5.5 rounded bg-slate-800 flex items-center justify-center font-bold text-xs">-</button><span className="font-mono text-[10px] min-w-[32px] text-center">{Math.round(scale * 100)}%</span><button onClick={() => changeScaleStep(0.05)} className="w-5.5 h-5.5 rounded bg-slate-800 flex items-center justify-center font-bold text-xs">+</button></div></div></div>)}
+              <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800/80"><div className="flex justify-between items-start mb-3"><div className="w-2/3"><span className="text-[9px] text-slate-400 font-bold tracking-wider uppercase bg-slate-850 px-2 py-0.5 rounded">BLOCK {selectedCell.b + 1} - CELL {selectedCell.c + 1}</span><h3 className="text-xs font-black text-slate-200 mt-2 flex items-center gap-2 truncate"><i className={`fa-solid ${selectedCell.b === 4 ? 'fa-crown text-yellow-500' : 'fa-compass text-cyan-400'}`}></i>{blockNames[selectedCell.b] || ""}</h3></div><div className="text-right"><span className="text-[9px] text-slate-400 block font-bold">目標強度</span><span className="text-xl font-black text-yellow-400 font-orbitron">Lv.{currentCellData.level}</span></div></div><div className="space-y-1.5"><label className="text-[10px] text-slate-400 font-bold block">目標テキスト (Enter改行反映)</label><textarea value={currentCellData.text} onChange={(e) => updateCellData(selectedCell.b, selectedCell.c, { text: e.target.value })} rows={3} className="w-full bg-slate-950 border border-slate-800/80 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-yellow-500 font-medium whitespace-pre-wrap leading-relaxed" placeholder="ここにマスの行動計画や目標を入力してください..."/></div><div className="mt-3.5 pt-3.5 border-t border-slate-800/80 space-y-2.5"><div className="flex justify-between items-center"><span className="text-[10px] text-slate-400 font-bold">自律レベル成長{(selectedCell.b === 4 || selectedCell.c === 4) && <span className="text-red-400 ml-1">(自動ロールアップ対象)</span>}</span></div><div className="flex items-center gap-1.5"><button onClick={() => adjustLevel(selectedCell.b, selectedCell.c, -10)} disabled={selectedCell.b === 4 || selectedCell.c === 4} className="bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-[10px] px-2 py-1.5 rounded text-slate-300 font-bold transition-all">-10</button><button onClick={() => adjustLevel(selectedCell.b, selectedCell.c, -1)} disabled={selectedCell.b === 4 || selectedCell.c === 4} className="bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-[10px] px-2 py-1.5 rounded text-slate-300 font-bold transition-all">-1</button><input type="range" min="0" max="100" value={currentCellData.level} onChange={(e) => updateCellData(selectedCell.b, selectedCell.c, { level: parseInt(e.target.value) })} disabled={selectedCell.b === 4 || selectedCell.c === 4} className="w-full accent-yellow-500 h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer disabled:opacity-30"/><button onClick={() => adjustLevel(selectedCell.b, selectedCell.c, 1)} disabled={selectedCell.b === 4 || selectedCell.c === 4} className="bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-[10px] px-2 py-1.5 rounded text-slate-300 font-bold transition-all">+1</button><button onClick={() => adjustLevel(selectedCell.b, selectedCell.c, 10)} disabled={selectedCell.b === 4 || selectedCell.c === 4} className="bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-[10px] px-2 py-1.5 rounded text-slate-300 font-bold transition-all">+10</button></div></div></div>
+              <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800/80 space-y-2"><label className="text-[10px] text-slate-400 font-bold block flex items-center gap-1.5"><i className="fa-solid fa-pen-nib text-cyan-400"></i>行動指針・コーチングログ</label><textarea value={currentCellData.memo || ""} onChange={(e) => updateCellData(selectedCell.b, selectedCell.c, { memo: e.target.value })} rows={2} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-300 focus:outline-none focus:border-cyan-500 font-medium leading-relaxed" placeholder="具体的な手法や、日々の気付き、テニスや仕事へのアプローチなど..."/></div>
+              <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800/80 space-y-3"><span className="text-[10px] text-slate-400 font-bold block flex items-center gap-1.5 border-b border-slate-800/60 pb-1.5"><i className="fa-solid fa-chart-pie text-emerald-400"></i>バランスホイール・自律度分析</span><div className="space-y-2 text-[10px]">{analyzedStats.sectors.map((sec, idx) => (
                     <div key={idx} className="space-y-0.5">
                       <div className="flex justify-between items-center text-slate-300">
                         <span className="truncate font-semibold max-w-[170px]">{sec.name}</span>
                         <span className="font-bold text-yellow-400/90 font-orbitron">{sec.avg}%</span>
                       </div>
                       <div className="w-full bg-slate-950 h-1 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-cyan-400 transition-all duration-300"
-                          style={{ width: `${sec.avg}%` }}
-                        ></div>
+                        <div className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-cyan-400 transition-all duration-300" style={{ width: `${sec.avg}%` }}></div>
                       </div>
                     </div>
-                  ))}
-                </div>
-
-                {/* コーチングアドバイス */}
-                <div className="mt-3 bg-slate-950/60 p-3 rounded-lg border border-slate-800/40 space-y-1.5">
-                  <div className="text-[9px] text-slate-400 flex items-center gap-1 font-bold">
-                    <i className="fa-solid fa-wand-magic-sparkles text-cyan-400"></i>
-                    調和アドバイス
-                  </div>
-                  <p className="text-[10px] text-slate-300 leading-relaxed font-medium">
-                    現在、最も推進力が高まっているのは <strong className="text-cyan-400">「{analyzedStats.strongest?.name}」</strong> です。
-                    さらに人生全体の共創と調和を広げるために、次は <strong className="text-yellow-400">「{analyzedStats.focusing?.name}」</strong> の領域に意識を向け、小さなアクションを1つ育てていきましょう。
-                  </p>
-                </div>
-              </div>
-
-              {/* 6. システム管理ボタン集（フッターからスクロールの一部に移動させ、画面を100%活用！） */}
-              <div className="bg-slate-950/50 p-3.5 rounded-xl border border-slate-850 space-y-2.5">
-                <div className="text-[9px] text-slate-400 font-bold tracking-widest flex items-center gap-1">
-                  <i className="fa-solid fa-database text-yellow-500"></i>
-                  データ管理・同期
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={exportData}
-                    className="bg-slate-900 hover:bg-slate-800 text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all border border-slate-700"
-                  >
-                    <i className="fa-solid fa-file-export"></i>
-                    バックアップ
-                  </button>
-                  <label className="bg-slate-900 hover:bg-slate-800 text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all border border-slate-750 cursor-pointer text-center">
-                    <i className="fa-solid fa-file-import"></i>
-                    復元ロード
-                    <input type="file" accept=".json" onChange={importData} className="hidden" />
-                  </label>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={handleClearAll}
-                    className="bg-slate-900 hover:bg-slate-850 border border-slate-850 text-slate-400 hover:text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all"
-                  >
-                    <i className="fa-solid fa-broom"></i>
-                    🧹 ゼロから白紙
-                  </button>
-                  <button
-                    onClick={handleFactoryReset}
-                    className="bg-red-950/40 hover:bg-red-900/50 border border-red-900/40 text-red-300 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all"
-                  >
-                    <i className="fa-solid fa-rotate-left"></i>
-                    デモ復元
-                  </button>
-                </div>
-              </div>
-
+                  ))}</div><div className="mt-3 bg-slate-950/60 p-3 rounded-lg border border-slate-800/40 space-y-1.5"><div className="text-[9px] text-slate-400 flex items-center gap-1 font-bold"><i className="fa-solid fa-wand-magic-sparkles text-cyan-400"></i>調和アドバイス</div><p className="text-[10px] text-slate-300 leading-relaxed font-medium">現在、最も推進力が高まっているのは <strong className="text-cyan-400">「{analyzedStats.strongest?.name}」</strong> です。さらに人生全体の共創と調和を広げるために、次は <strong className="text-yellow-400">「{analyzedStats.focusing?.name}」</strong> の領域に意識を向け、小さなアクションを1つ育てていきましょう。</p></div></div>
+              <div className="bg-slate-950/50 p-3.5 rounded-xl border border-slate-850 space-y-2.5"><div className="text-[9px] text-slate-400 font-bold tracking-widest flex items-center gap-1"><i className="fa-solid fa-database text-yellow-500"></i>データ管理・同期</div><div className="grid grid-cols-2 gap-2"><button onClick={exportData} className="bg-slate-900 hover:bg-slate-800 text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all border border-slate-800"><i className="fa-solid fa-file-export"></i>バックアップ</button><label className="bg-slate-900 hover:bg-slate-800 text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all border border-slate-800 cursor-pointer text-center"><i className="fa-solid fa-file-import"></i>復元ロード<input type="file" accept=".json" onChange={importData} className="hidden" /></label></div><div className="grid grid-cols-2 gap-2"><button onClick={handleClearAll} className="bg-slate-900 hover:bg-slate-850 border border-slate-850 text-slate-400 hover:text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all"><i className="fa-solid fa-broom"></i>🧹 ゼロから白紙</button><button onClick={handleFactoryReset} className="bg-red-950/40 hover:bg-red-900/50 border border-red-900/40 text-red-300 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all"><i className="fa-solid fa-rotate-left"></i>デモ復元</button></div></div>
             </div>
           </div>
 
           {/* 右側メインキャンバス */}
           <div className="flex-grow flex flex-col h-full overflow-hidden relative">
             
-            {/* 上部ヘッダー（モバイル実機・またはランドスケープ時のみ非表示にし、通常PC環境では100%完全常時表示） */}
-            <div className={`p-4 bg-[#0a0f1d] border-b border-slate-800 flex flex-wrap justify-between items-center gap-3 z-10 no-print 
-              ${fullPrintMode || isMobile || isLandscape ? 'hidden' : ''}
-            `}>
+            {/* 上部ヘッダー */}
+            <div className={`p-4 bg-[#0a0f1d] border-b border-slate-800 flex flex-wrap justify-between items-center gap-3 z-10 no-print ${fullPrintMode || isMobile || isLandscape ? 'hidden' : ''}`}>
               <div className="flex items-center gap-3">
                 <h2 className="text-sm font-black text-yellow-400 flex items-center gap-1.5 tracking-wider uppercase font-orbitron">
                   <span className="relative flex h-2 w-2">
@@ -1326,79 +643,22 @@
                 
                 {/* 9x9と3x3フォーカス */}
                 <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800">
-                  <button
-                    onClick={() => setZoomBlock(null)}
-                    className={`px-2 py-0.5 text-[10px] font-bold rounded transition-all ${zoomBlock === null ? 'bg-yellow-500 text-slate-950' : 'text-slate-400 hover:text-slate-200'}`}
-                  >
-                    9x9 全体
-                  </button>
-                  <select
-                    value={zoomBlock !== null ? zoomBlock : ""}
-                    onChange={(e) => setZoomBlock(e.target.value === "" ? null : parseInt(e.target.value))}
-                    className={`text-[10px] font-bold px-1.5 py-0.5 rounded focus:outline-none cursor-pointer bg-slate-900 border border-slate-800 ${zoomBlock !== null ? 'text-yellow-400' : 'text-slate-400'}`}
-                  >
-                    <option value="">-- 領域拡大 --</option>
-                    {Object.keys(DEFAULT_BLOCK_NAMES).map((key) => (
-                      <option key={key} value={key}>
-                        {blockNames[key] || `領域 ${parseInt(key)+1}`}
-                      </option>
-                    ))}
-                  </select>
+                  <button onClick={() => setZoomBlock(null)} className={`px-2 py-0.5 text-[10px] font-bold rounded transition-all ${zoomBlock === null ? 'bg-yellow-500 text-slate-950' : 'text-slate-400 hover:text-slate-200'}`}>9x9 全体</button>
+                  <select value={zoomBlock !== null ? zoomBlock : ""} onChange={(e) => setZoomBlock(e.target.value === "" ? null : parseInt(e.target.value))} className={`text-[10px] font-bold px-1.5 py-0.5 rounded focus:outline-none cursor-pointer bg-slate-900 border border-slate-800 ${zoomBlock !== null ? 'text-yellow-400' : 'text-slate-400'}`}><option value="">-- 領域拡大 --</option>{Object.keys(DEFAULT_BLOCK_NAMES).map((key) => (<option key={key} value={key}>{blockNames[key] || `領域 ${parseInt(key)+1}`}</option>))}</select>
                 </div>
               </div>
 
               {/* ヘッダー右側調整類（PC専用） */}
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setPrintEconomy(!printEconomy)}
-                  className={`p-2 rounded-lg text-xs font-bold border transition-all flex items-center gap-1.5 ${printEconomy ? 'bg-slate-200 text-slate-950 border-white' : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-slate-600'}`}
-                  title="背景を真っ白にしてインクを長持ちさせます"
-                >
-                  <i className={`fa-solid ${printEconomy ? 'fa-toggle-on text-emerald-600' : 'fa-toggle-off'}`}></i>
-                  <span className="hidden sm:inline">インク節約</span>
-                </button>
-
-                <button
-                  onClick={() => setFullPrintMode(true)}
-                  className="bg-cyan-600 hover:bg-cyan-500 text-white text-xs py-2 px-3 rounded-lg font-bold flex items-center gap-1.5 transition-all shadow-md"
-                >
-                  <i className="fa-solid fa-print"></i>
-                  <span className="hidden sm:inline">全画面印刷</span>
-                </button>
-
-                <button
-                  onClick={fitToScreen}
-                  className="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 p-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5"
-                >
-                  <i className="fa-solid fa-expand"></i>
-                  <span className="hidden md:inline">画面にフィット</span>
-                </button>
+                <button onClick={() => setPrintEconomy(!printEconomy)} className={`p-2 rounded-lg text-xs font-bold border transition-all flex items-center gap-1.5 ${printEconomy ? 'bg-slate-200 text-slate-950 border-white' : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-slate-600'}`} title="背景を真っ白にしてインクを長持ちさせます"><i className={`fa-solid ${printEconomy ? 'fa-toggle-on text-emerald-600' : 'fa-toggle-off'}`}></i><span className="hidden sm:inline">インク節約</span></button>
+                <button onClick={() => setFullPrintMode(true)} className="bg-cyan-600 hover:bg-cyan-500 text-white text-xs py-2 px-3 rounded-lg font-bold flex items-center gap-1.5 transition-all shadow-md"><i className="fa-solid fa-print"></i><span className="hidden sm:inline">全画面印刷</span></button>
+                <button onClick={fitToScreen} className="bg-slate-900 hover:bg-slate-850 border border-slate-700 text-slate-300 p-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5"><i className="fa-solid fa-expand"></i><span className="hidden md:inline">画面にフィット</span></button>
 
                 {/* スケールコントローラー */}
                 <div className="flex items-center gap-1.5 bg-slate-950 px-2 py-1.5 rounded-lg border border-slate-800 no-drag">
-                  <button
-                    onClick={() => changeScaleStep(-0.1)}
-                    className="w-5.5 h-5.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-all"
-                  >
-                    <i className="fa-solid fa-minus text-[8px]"></i>
-                  </button>
-                  
-                  <input
-                    type="range"
-                    min="0.12"
-                    max="2.0"
-                    step="0.05"
-                    value={scale}
-                    onChange={(e) => setScale(parseFloat(e.target.value))}
-                    className="w-14 accent-cyan-500 h-1 rounded bg-slate-800"
-                  />
-
-                  <button
-                    onClick={() => changeScaleStep(0.1)}
-                    className="w-5.5 h-5.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-all"
-                  >
-                    <i className="fa-solid fa-plus text-[8px]"></i>
-                  </button>
+                  <button onClick={() => changeScaleStep(-0.1)} className="w-5.5 h-5.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-all"><i className="fa-solid fa-minus text-[8px]"></i></button>
+                  <input type="range" min="0.12" max="2.0" step="0.05" value={scale} onChange={(e) => setScale(parseFloat(e.target.value))} className="w-14 accent-cyan-500 h-1 rounded bg-slate-800"/>
+                  <button onClick={() => changeScaleStep(0.1)} className="w-5.5 h-5.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-all"><i className="fa-solid fa-plus text-[8px]"></i></button>
                   <span className="text-[9px] text-slate-300 font-mono w-8 text-right">{Math.round(scale * 100)}%</span>
                 </div>
               </div>
@@ -1406,79 +666,26 @@
 
             {/* PC・モバイル共通の「親指フローティング・開閉ボタン」 */}
             {!isSidebarOpen && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsSidebarOpen(true);
-                }}
-                className="fixed bottom-6 left-6 z-40 bg-[#0d1424]/95 hover:bg-slate-800 text-white border-2 border-emerald-500/80 px-4 py-3.5 rounded-full shadow-2xl backdrop-blur flex items-center gap-2 active:scale-95 transition-all font-bold text-sm select-none no-print no-drag animate-fade-in"
-              >
-                <i className="fa-solid fa-bars text-emerald-400"></i>
-                <span>📊 メニュー</span>
-              </button>
+              <button onClick={(e) => { e.stopPropagation(); setIsSidebarOpen(true); }} className="fixed bottom-6 left-6 z-40 bg-[#0d1424]/95 hover:bg-slate-850 text-white border-2 border-emerald-500/80 px-4 py-3.5 rounded-full shadow-2xl backdrop-blur flex items-center gap-2 active:scale-95 transition-all font-bold text-sm select-none no-print no-drag animate-fade-in"><i className="fa-solid fa-bars text-emerald-400"></i><span>📊 メニュー</span></button>
             )}
 
             {/* モバイル実機専用：右下の「フィット」ボタン */}
             {(isMobile || isLandscape) && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  fitToScreen();
-                }}
-                className="fixed bottom-6 right-6 z-40 bg-[#0d1424]/95 hover:bg-slate-850 text-white border border-slate-700/80 p-3.5 rounded-full shadow-2xl backdrop-blur flex items-center justify-center active:scale-95 transition-all select-none no-print no-drag animate-fade-in"
-                title="画面にフィット"
-              >
-                <i className="fa-solid fa-expand text-cyan-400 text-base"></i>
-              </button>
+              <button onClick={(e) => { e.stopPropagation(); fitToScreen(); }} className="fixed bottom-6 right-6 z-40 bg-[#0d1424]/95 hover:bg-slate-850 text-white border border-slate-700/80 p-3.5 rounded-full shadow-2xl backdrop-blur flex items-center justify-center active:scale-95 transition-all select-none no-print no-drag animate-fade-in" title="画面にフィット"><i className="fa-solid fa-expand text-cyan-400 text-base"></i></button>
             )}
 
             {/* 全画面印刷モードコントロール */}
             {fullPrintMode && (
               <div className="absolute top-4 left-4 right-4 flex justify-between items-center bg-slate-900/95 border border-slate-800 rounded-xl p-3.5 z-50 no-print">
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-bold text-yellow-400 flex items-center gap-2">
-                    <i className="fa-solid fa-crown"></i>
-                    {projectName} 印刷プレビュー
-                  </span>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => window.print()}
-                    className="bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold text-[10px] py-1.5 px-3.5 rounded"
-                  >
-                    印刷起動
-                  </button>
-                  <button
-                    onClick={() => setFullPrintMode(false)}
-                    className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-[10px] py-1.5 px-3.5 rounded"
-                  >
-                    戻る
-                  </button>
-                </div>
-              </div>
+                <div className="flex items-center gap-3"><span className="text-xs font-bold text-yellow-400 flex items-center gap-2"><i className="fa-solid fa-crown"></i>{projectName} 印刷プレビュー</span></div>
+                <div className="flex gap-2"><button onClick={() => window.print()} className="bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold text-[10px] py-1.5 px-3.5 rounded">印刷起動</button><button onClick={() => setFullPrintMode(false)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-[10px] py-1.5 px-3.5 rounded">戻る</button></div></div>
             )}
 
             {/* ボード描画コンテナ */}
-            <div
-              ref={boardContainerRef}
-              onMouseDown={onMouseDown}
-              onMouseMove={onMouseMove}
-              onMouseUp={handleDragEnd}
-              onMouseLeave={handleDragEnd}
-              onClick={() => {
-                // キャンバスをタップしたときに自動でサイドバーが引っ込む親切設計（モバイル・横置き時のみ有効）
-                if ((isMobile || isLandscape) && isSidebarOpen) setIsSidebarOpen(false);
-              }}
-              className="flex-grow overflow-hidden relative bg-[#06080e] drag-canvas"
-            >
+            <div ref={boardContainerRef} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={handleDragEnd} onMouseLeave={handleDragEnd} onClick={() => { if ((isMobile || isLandscape) && isSidebarOpen) setIsSidebarOpen(false); }} className="flex-grow overflow-hidden relative bg-[#06080e] drag-canvas">
               
               {/* スケールラッパー */}
-              <div
-                className="absolute transition-transform duration-100 origin-top-left"
-                style={{
-                  transform: `translate(${scrollOffset.x}px, ${scrollOffset.y}px) scale(${scale})`,
-                }}
-              >
+              <div className="absolute transition-transform duration-100 origin-top-left" style={{ transform: `translate(${scrollOffset.x}px, ${scrollOffset.y}px) scale(${scale})` }}>
                 
                 {/* マンダラボード枠 */}
                 <div className={`print-area mandala-board-wrapper bg-[#0f1525]/60 rounded-3xl p-6 flex flex-wrap gap-5 justify-between relative shadow-[0_0_60px_rgba(0,0,0,0.6)] border border-slate-800/80 ${printEconomy ? 'bg-white shadow-none border-0' : ''}`}>
@@ -1495,81 +702,27 @@
                     const isEditingBlockName = editingBlockNameIdx === bIndex;
 
                     return (
-                      <div
-                        key={bIndex}
-                        className={`mandala-block-wrapper rounded-2xl p-2.5 flex flex-col justify-between transition-all duration-300 border relative ${
-                          printEconomy 
-                            ? 'bg-white border-2 border-black shadow-none' 
-                            : 'bg-[#121927]/95 border-slate-800/80 shadow-[0_4px_25px_rgba(0,0,0,0.45)]'
-                        } ${
-                          zoomBlock !== null ? 'scale-[1.8] origin-center z-40 mx-auto my-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 shadow-[0_0_50px_rgba(0,0,0,0.85)]' : ''
-                        }`}
-                      >
+                      <div key={bIndex} className={`mandala-block-wrapper rounded-2xl p-2.5 flex flex-col justify-between transition-all duration-300 border relative ${printEconomy ? 'bg-white border-2 border-black shadow-none' : 'bg-[#121927]/95 border-slate-800/80 shadow-[0_4px_25px_rgba(0,0,0,0.45)]'} ${zoomBlock !== null ? 'scale-[1.8] origin-center z-40 mx-auto my-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 shadow-[0_0_50px_rgba(0,0,0,0.85)]' : ''}`}>
+                        
                         {/* ブロックタイトル */}
                         <div className="text-[11px] font-black px-1 pb-1.5 border-b border-slate-800/40 flex items-center justify-between relative z-20">
                           <div className="flex items-center gap-1.5 max-w-[280px]">
                             {isEditingBlockName ? (
-                              <input
-                                type="text"
-                                value={tempBlockName}
-                                onChange={(e) => setTempBlockName(e.target.value)}
-                                onBlur={() => saveBlockNameEdit(bIndex)}
-                                onKeyDown={(e) => e.key === 'Enter' && saveBlockNameEdit(bIndex)}
-                                autoFocus
-                                className="bg-slate-950 text-white font-black text-[10px] px-1 py-0.5 rounded border border-yellow-500 focus:outline-none no-drag"
-                              />
+                              <input type="text" value={tempBlockName} onChange={(e) => setTempBlockName(e.target.value)} onBlur={() => saveBlockNameEdit(bIndex)} onKeyDown={(e) => e.key === 'Enter' && saveBlockNameEdit(bIndex)} autoFocus className="bg-slate-950 text-white font-black text-[10px] px-1 py-0.5 rounded border border-yellow-500 focus:outline-none no-drag"/>
                             ) : (
-                              <span 
-                                onDoubleClick={(e) => startBlockNameEdit(bIndex, e)}
-                                className={`flex items-center gap-1 cursor-pointer hover:text-yellow-400 select-none ${printEconomy ? 'text-black' : 'text-slate-200'}`}
-                                title="ダブルクリックでタイトルを変更できます"
-                              >
-                                <i className="fa-solid fa-pen-to-square text-[9px] text-slate-500 mr-0.5"></i>
-                                {blockNames[bIndex] || `領域 ${bIndex + 1}`}
-                              </span>
+                              <span onDoubleClick={(e) => startBlockNameEdit(bIndex, e)} className={`flex items-center gap-1 cursor-pointer hover:text-yellow-400 select-none ${printEconomy ? 'text-black' : 'text-slate-200'}`} title="ダブルクリックでタイトルを変更できます"><i className="fa-solid fa-pen-to-square text-[9px] text-slate-500 mr-0.5"></i>{blockNames[bIndex] || `領域 ${bIndex + 1}`}</span>
                             )}
-                            
                             {!printEconomy && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setActivePaletteBlock(isPaletteOpen ? null : bIndex);
-                                }}
-                                className="w-3.5 h-3.5 rounded-full border border-slate-600/80 hover:scale-110 active:scale-95 transition-all shadow no-drag"
-                                style={{ background: `hsl(${themeHue}, 80%, 40%)` }}
-                              />
+                              <button onClick={(e) => { e.stopPropagation(); setActivePaletteBlock(isPaletteOpen ? null : bIndex); }} className="w-3.5 h-3.5 rounded-full border border-slate-600/80 hover:scale-110 active:scale-95 transition-all shadow no-drag" style={{ background: `hsl(${themeHue}, 80%, 40%)` }}/>
                             )}
                           </div>
-                          
-                          <span className={`text-[9px] px-1.5 py-0.5 rounded ${printEconomy ? 'text-black font-bold' : 'text-yellow-400 bg-yellow-500/10 font-orbitron'}`}>
-                            平均Lv.{blockAvgLv}
-                          </span>
+                          <span className={`text-[9px] px-1.5 py-0.5 rounded ${printEconomy ? 'text-black font-bold' : 'text-yellow-400 bg-yellow-500/10 font-orbitron'}`}>平均Lv.{blockAvgLv}</span>
 
                           {/* 20色プレミアムパレット */}
                           {isPaletteOpen && (
                             <div className="absolute top-7 left-1 bg-slate-900 border-2 border-slate-800 rounded-xl p-3 shadow-2xl z-50 w-72 grid grid-cols-5 gap-1.5 animate-fade-in no-drag">
-                              <div className="col-span-5 flex justify-between items-center text-[9px] text-slate-400 font-bold mb-1 pb-1 border-b border-slate-800">
-                                <span>ベースダークカラー(20色)</span>
-                                <button onClick={() => setActivePaletteBlock(null)} className="text-red-400 hover:text-red-300">
-                                  閉じる
-                                </button>
-                              </div>
-                              {PRESET_HUES.map((preset, pIdx) => (
-                                <button
-                                  key={pIdx}
-                                  onClick={() => {
-                                    setBlockHues(prev => ({ ...prev, [bIndex]: preset.hue }));
-                                    setActivePaletteBlock(null);
-                                    showToast(`${blockNames[bIndex] || `領域 ${bIndex + 1}`}の色を「${preset.name}」に変更しました`);
-                                  }}
-                                  className="h-8 rounded-lg border border-slate-700/60 transition-all hover:scale-105 flex flex-col items-center justify-center relative group"
-                                  style={{ background: `hsl(${preset.hue}, 70%, 25%)` }}
-                                >
-                                  <span className="absolute bottom-full left-1/2 -translate-x-1/2 bg-slate-950 text-white text-[7px] py-0.5 px-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
-                                    {preset.name}
-                                  </span>
-                                </button>
-                              ))}
+                              <div className="col-span-5 flex justify-between items-center text-[9px] text-slate-400 font-bold mb-1 pb-1 border-b border-slate-800"><span>ベースダークカラー(20色)</span><button onClick={() => setActivePaletteBlock(null)} className="text-red-400 hover:text-red-300">閉じる</button></div>
+                              {PRESET_HUES.map((preset, pIdx) => <button key={pIdx} onClick={() => { setBlockHues(prev => ({ ...prev, [bIndex]: preset.hue })); setActivePaletteBlock(null); showToast(`${blockNames[bIndex] || `領域 ${bIndex + 1}`}の色を「${preset.name}」に変更しました`); }} className="h-8 rounded-lg border border-slate-700/60 transition-all hover:scale-105 flex flex-col items-center justify-center relative group" style={{ background: `hsl(${preset.hue}, 70%, 25%)` }}><span className="absolute bottom-full left-1/2 -translate-x-1/2 bg-slate-950 text-white text-[7px] py-0.5 px-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">{preset.name}</span></button>)}
                             </div>
                           )}
                         </div>
@@ -1583,18 +736,17 @@
 
                             const isBlockCenter = cIndex === 4;
                             const isAbsoluteCenter = bIndex === 4 && cIndex === 4;
-                            const isEditingThisCell = editingCell && editingCell.b === bIndex && editingCell.c === cIndex;
 
                             return (
                               <div
                                 key={cIndex}
                                 onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (isMoved.current) return;
-                                  
+                                  e.stopPropagation(); if (isMoved.current) return;
                                   if (isSelected) {
+                                    // すでに選択されている状態で「レベルボタン以外の領域」をもう一度クリックした時だけ、テキスト編集（エディタ）を起動
                                     startInlineEdit(bIndex, cIndex, e);
                                   } else {
+                                    // 未選択の時はワンクリックで「選択」
                                     setSelectedCell({ b: bIndex, c: cIndex });
                                   }
                                 }}
@@ -1602,117 +754,56 @@
                                   if (isMoved.current) return;
                                   startInlineEdit(bIndex, cIndex, e);
                                 }}
-                                className={`mandala-cell rounded-xl p-1.5 flex flex-col justify-between relative cursor-pointer overflow-hidden ${styleData.className} ${
-                                  isSelected ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-900 scale-[1.02] z-10' : 'hover:scale-[1.01]'
-                                }`}
-                                style={styleData.style}
+                                className={`mandala-cell rounded-xl p-1.5 flex flex-col justify-between relative cursor-pointer overflow-hidden ${styleData.className} ${isSelected ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-900 scale-[1.02] z-10' : 'hover:scale-[1.01]'}`} style={styleData.style}
                               >
                                 <div className="flex items-center justify-between text-[8px] opacity-70 tracking-tight font-orbitron font-bold select-none h-3">
                                   <span>{bIndex + 1}-{cIndex + 1}</span>
-                                  <span>
-                                    {isAbsoluteCenter 
-                                      ? "⭐ 大目標" 
-                                      : isBlockCenter 
-                                        ? "🔷 中目標" 
-                                        : "◈ ACTION"}
-                                  </span>
+                                  <span>{(bIndex === 4 && cIndex === 4) ? "⭐ 大目標" : (cIndex === 4) ? "🔷 中目標" : "◈ ACTION"}</span>
                                 </div>
 
                                 <div className="flex-grow flex items-center justify-center my-0.5 max-h-[52px] overflow-hidden">
-                                  {isEditingThisCell ? (
-                                    <textarea
-                                      value={inlineText}
-                                      onChange={(e) => setInlineText(e.target.value)}
-                                      onBlur={saveInlineEdit}
-                                      autoFocus
-                                      rows={2}
-                                      className="w-full text-[16px] lg:text-[11px] bg-slate-950 text-white p-1 rounded leading-tight whitespace-pre-wrap border border-yellow-500 font-medium focus:outline-none no-drag"
-                                      placeholder="目標を入力..."
-                                    />
-                                  ) : (
-                                    <p className={`w-full text-center text-[10.5px] leading-tight font-bold tracking-normal whitespace-pre-wrap break-all line-clamp-3 select-none ${
-                                      printEconomy ? 'text-black' : (cellData.level > 90 ? 'text-slate-955' : 'text-slate-100')
-                                    }`}>
-                                      {cellData.text}
-                                    </p>
-                                  )}
+                                  <p className={`w-full text-center text-[10.5px] leading-tight font-bold tracking-normal whitespace-pre-wrap break-all line-clamp-3 select-none ${printEconomy ? 'text-black' : (cellData.level > 90 ? 'text-slate-955' : 'text-slate-100')}`}>{cellData.text}</p>
                                 </div>
 
                                 <div className="flex items-center justify-between mt-0.5 h-5 select-none">
-                                  <span className={`text-[10px] font-black font-orbitron tracking-tight ${
-                                    printEconomy ? 'text-black' : (cellData.level > 90 ? 'text-slate-955' : 'text-yellow-400')
-                                  }`}>
-                                    Lv.{cellData.level}
-                                  </span>
+                                  
+                                  {/* 【ダブルクリック暴発完全阻止済】レベル調整ボタン（onTouchStart/onPointerDownの二重防御） */}
+                                  {isSelected && !isBlockCenter && !isAbsoluteCenter ? (
+                                    <div className="flex items-center gap-1 bg-[#0d1424]/90 rounded-full px-1.5 py-0.5 border border-cyan-500/30 no-drag shadow-lg relative z-30">
+                                      <button 
+                                        onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); }}
+                                        onDoubleClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
+                                        onTouchStart={(e) => { e.stopPropagation(); e.preventDefault(); adjustLevel(bIndex, cIndex, -1); }}
+                                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); adjustLevel(bIndex, cIndex, -1); }} 
+                                        className="w-4 h-4 rounded-full bg-slate-800 hover:bg-red-600 flex items-center justify-center text-[10px] text-white font-black transition-all active:scale-75"
+                                        title="レベルを1下げる"
+                                      >
+                                        -
+                                      </button>
+                                      <span className="text-[10px] font-black px-1 font-orbitron text-yellow-400 select-none">Lv.{cellData.level}</span>
+                                      <button 
+                                        onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); }}
+                                        onDoubleClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
+                                        onTouchStart={(e) => { e.stopPropagation(); e.preventDefault(); adjustLevel(bIndex, cIndex, 1); }}
+                                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); adjustLevel(bIndex, cIndex, 1); }} 
+                                        className="w-4 h-4 rounded-full bg-slate-800 hover:bg-emerald-600 flex items-center justify-center text-[10px] text-white font-black transition-all active:scale-75"
+                                        title="レベルを1上げる"
+                                      >
+                                        +
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <span className={`text-[10px] font-black font-orbitron tracking-tight ${printEconomy ? 'text-black' : (cellData.level > 90 ? 'text-slate-955' : 'text-yellow-400')}`}>Lv.{cellData.level}</span>
+                                  )}
 
                                   <div className="relative w-5 h-5 flex items-center justify-center">
                                     <svg className="w-5 h-5 transform -rotate-90" viewBox="0 0 24 24">
-                                      <circle
-                                        cx="12"
-                                        cy="12"
-                                        r="9"
-                                        fill="transparent"
-                                        stroke={printEconomy ? "#cbd5e1" : "rgba(255, 255, 255, 0.15)"}
-                                        strokeWidth="2.5"
-                                        className="no-print"
-                                      />
-                                      <circle
-                                        cx="12"
-                                        cy="12"
-                                        r="9"
-                                        fill="transparent"
-                                        stroke={printEconomy ? "#000" : (cellData.level >= 100 ? "#eab308" : cellData.level > 90 ? "#22d3ee" : "#d4af37")}
-                                        strokeWidth="2.5"
-                                        strokeDasharray={`${2 * Math.PI * 9}`}
-                                        strokeDashoffset={`${2 * Math.PI * 9 * (1 - cellData.level / 100)}`}
-                                        strokeLinecap="round"
-                                        className="transition-all duration-300"
-                                      />
+                                      <circle cx="12" cy="12" r="9" fill="transparent" stroke={printEconomy ? "#cbd5e1" : "rgba(255, 255, 255, 0.15)"} strokeWidth="2.5" className="no-print"/>
+                                      <circle cx="12" cy="12" r="9" fill="transparent" stroke={printEconomy ? "#000" : (cellData.level >= 100 ? "#eab308" : cellData.level > 90 ? "#22d3ee" : "#d4af37")} strokeWidth="2.5" strokeDasharray={`${2 * Math.PI * 9}`} strokeDashoffset={`${2 * Math.PI * 9 * (1 - cellData.level / 100)}`} strokeLinecap="round" className="transition-all duration-300"/>
                                     </svg>
-                                    
-                                    {cellData.level === 100 && (
-                                      <div className="absolute -top-1 -right-1 text-[8px] text-yellow-300 drop-shadow animate-bounce">
-                                        <i className="fa-solid fa-crown"></i>
-                                      </div>
-                                    )}
+                                    {cellData.level === 100 && <div className="absolute -top-1 -right-1 text-[8px] text-yellow-300 drop-shadow animate-bounce"><i className="fa-solid fa-crown"></i></div>}
                                   </div>
                                 </div>
-
-                                {/* クイックホバー・コントローラー */}
-                                {!isBlockCenter && !printEconomy && !isEditingThisCell && (
-                                  <div className="absolute inset-x-0 bottom-0 top-0 opacity-0 hover:opacity-100 bg-slate-950/90 backdrop-blur-sm transition-opacity duration-150 flex items-center justify-between px-2.5 z-10 rounded-xl no-drag">
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        adjustLevel(bIndex, cIndex, -1);
-                                      }}
-                                      className="w-7 h-7 rounded-full bg-slate-800 hover:bg-red-600 hover:scale-105 active:scale-95 text-white font-bold flex items-center justify-center transition-all border border-slate-700"
-                                    >
-                                      <i className="fa-solid fa-minus text-[10px]"></i>
-                                    </button>
-                                    
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        startInlineEdit(bIndex, cIndex, e);
-                                      }}
-                                      className="flex flex-col items-center justify-center text-slate-300 hover:text-yellow-400 transition-colors py-1 px-2 rounded-lg hover:bg-slate-850 border border-transparent hover:border-slate-700"
-                                    >
-                                      <i className="fa-solid fa-pen-to-square text-xs mb-0.5"></i>
-                                      <span className="text-[7px] font-bold tracking-wider leading-none">EDIT</span>
-                                    </button>
-
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        adjustLevel(bIndex, cIndex, 1);
-                                      }}
-                                      className="w-7 h-7 rounded-full bg-slate-800 hover:bg-emerald-600 hover:scale-105 active:scale-95 text-white font-bold flex items-center justify-center transition-all border border-slate-700"
-                                    >
-                                      <i className="fa-solid fa-plus text-[10px]"></i>
-                                    </button>
-                                  </div>
-                                )}
                               </div>
                             );
                           })}
@@ -1723,13 +814,112 @@
                 </div>
               </div>
             </div>
+
+            {/* 【大改善：3x3一括コックピット型統合ポップアップエディタ】 */}
+            {editingCell && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fade-in no-drag no-print">
+                <div className="w-full max-w-3xl bg-slate-900/95 border-2 border-cyan-500/30 rounded-2xl p-5 shadow-[0_0_50px_rgba(6,182,212,0.35)] relative overflow-hidden flex flex-col gap-4">
+                  <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-cyan-500 via-emerald-400 to-yellow-500"></div>
+                  
+                  {/* エディタヘッダー */}
+                  <div className="flex justify-between items-center border-b border-slate-800/80 pb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-cyan-400 font-black tracking-widest uppercase bg-cyan-950/80 px-2.5 py-1 rounded-md border border-cyan-500/20 font-orbitron">
+                        BLOCK {editingCell.b + 1} - CELL {editingCell.c + 1}
+                      </span>
+                      <h4 className="text-xs font-black text-slate-400">
+                        {blockNames[editingCell.b] || ""}
+                      </h4>
+                    </div>
+                    <span className="text-xs font-black text-yellow-400 font-orbitron">
+                      このセルの現在の自律度: Lv.{cells?.[editingCell.b]?.[editingCell.c]?.level || 0}
+                    </span>
+                  </div>
+
+                  {/* 【革新機能】モーダル内3x3ミニマップ */}
+                  <div className="bg-slate-950/80 rounded-xl p-3 border border-slate-850">
+                    <p className="text-[10px] text-slate-400 font-bold mb-2 flex items-center gap-1.5">
+                      <i className="fa-solid fa-map-location-dot text-emerald-400"></i>
+                      <span>マスをタップして切り替え（選択中：水色）:</span>
+                    </p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {Array.from({ length: 9 }).map((_, cIdx) => {
+                        const targetCell = cells?.[editingCell.b]?.[cIdx] || { text: "", level: 0 };
+                        const isThisEditing = editingCell.c === cIdx;
+                        
+                        return (
+                          <div 
+                            key={cIdx} 
+                            onClick={() => {
+                              // 現在の大きな入力欄のテキストを、切り替える前のセルに一時保存
+                              updateCellData(editingCell.b, editingCell.c, { text: inlineText });
+                              // 編集中のセルインデックス（c）を、タップされた新しいインデックスに変更
+                              setEditingCell({ b: editingCell.b, c: cIdx });
+                              // 大きな入力欄（inlineText）に新しいセルのテキストを展開
+                              setInlineText(cells?.[editingCell.b]?.[cIdx]?.text || "");
+                            }}
+                            className={`p-2 rounded-lg border text-left cursor-pointer transition-all relative overflow-hidden flex flex-col justify-between h-[68px] hover:border-cyan-400/50 hover:bg-slate-900 ${
+                              isThisEditing 
+                                ? 'bg-cyan-950/40 border-cyan-400/80 ring-1 ring-cyan-400/50 shadow-[0_0_12px_rgba(6,182,212,0.2)]' 
+                                : 'bg-slate-900/60 border-slate-800'
+                            }`}
+                          >
+                            <div className="flex justify-between text-[8px] opacity-60 font-bold">
+                              <span>{editingCell.b + 1}-{cIdx + 1}</span>
+                              <span className="text-yellow-400">Lv.{targetCell.level}</span>
+                            </div>
+                            <p className="text-[9.5px] leading-tight font-medium text-slate-300 line-clamp-2 break-all overflow-hidden mt-1">
+                              {isThisEditing ? (inlineText || "(未入力)") : (targetCell.text || "(未入力)")}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* モバイルでキーボードが出現しても文字がくっきり見える16px可変フォントのtextarea */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-slate-400 font-bold block">目標テキスト</label>
+                    <textarea
+                      value={inlineText}
+                      onChange={(e) => setInlineText(e.target.value)}
+                      rows={3}
+                      className="w-full text-sm lg:text-base bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-400 font-bold whitespace-pre-wrap leading-relaxed shadow-inner"
+                      placeholder="目標や具体的な計画を入力してください..."
+                      autoFocus
+                    />
+                  </div>
+
+                  {/* フッターコントロール */}
+                  <div className="flex justify-between items-center pt-3 border-t border-slate-800/80">
+                    <p className="text-[10px] text-slate-500 font-bold flex items-center gap-1">
+                      <i className="fa-solid fa-circle-info"></i>
+                      <span>ミニマップから全マスをその場でサクサク編集できます！</span>
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={cancelInlineEdit}
+                        className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-2 px-4 rounded-lg font-black transition-all border border-slate-700/60"
+                      >
+                        キャンセル
+                      </button>
+                      <button
+                        onClick={saveInlineEdit}
+                        className="bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-white text-xs py-2 px-5 rounded-lg font-black transition-all shadow-lg active:scale-95"
+                      >
+                        決定 ＆ 保存
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
           </div>
         </div>
       );
     }
-
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
   </script>
 </body>
 </html>
