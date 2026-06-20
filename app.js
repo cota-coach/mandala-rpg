@@ -897,38 +897,151 @@ function App() {
       }
     });
   };
+  const sanitizeBackupFileName = name => {
+    return String(name || "mandala-chart").replace(/[\\/:*?"<>|]/g, "_").trim() || "mandala-chart";
+  };
+  const normalizeBackupCells = rawCells => {
+    if (!rawCells || typeof rawCells !== "object") throw new Error("cells_missing");
+    const normalized = {};
+    for (let b = 0; b < 9; b++) {
+      const rawBlock = rawCells[b];
+      if (!rawBlock || typeof rawBlock !== "object") throw new Error("cells_shape");
+      normalized[b] = {};
+      for (let c = 0; c < 9; c++) {
+        const rawCell = rawBlock[c];
+        if (!rawCell || typeof rawCell !== "object") throw new Error("cells_shape");
+        const level = Number(rawCell.level);
+        normalized[b][c] = {
+          text: typeof rawCell.text === "string" ? rawCell.text : "",
+          level: Number.isFinite(level) ? Math.max(0, Math.min(100, Math.round(level))) : 0,
+          memo: typeof rawCell.memo === "string" ? rawCell.memo : ""
+        };
+      }
+    }
+    return normalized;
+  };
+  const normalizeStringMap = (rawMap, fallback) => {
+    const normalized = {
+      ...fallback
+    };
+    if (rawMap && typeof rawMap === "object") {
+      for (let i = 0; i < 9; i++) {
+        if (typeof rawMap[i] === "string") normalized[i] = rawMap[i];
+      }
+    }
+    return normalized;
+  };
+  const normalizeHueMap = (rawMap, fallback) => {
+    const normalized = {
+      ...fallback
+    };
+    if (rawMap && typeof rawMap === "object") {
+      for (let i = 0; i < 9; i++) {
+        const hue = Number(rawMap[i]);
+        if (Number.isFinite(hue)) normalized[i] = Math.max(0, Math.min(360, Math.round(hue)));
+      }
+    }
+    return normalized;
+  };
+  const parseMandalaBackup = raw => {
+    let parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (err) {
+      throw new Error("json_parse");
+    }
+    if (!parsed || typeof parsed !== "object") throw new Error("backup_shape");
+    if (!parsed.cells) throw new Error("not_mandala_backup");
+    const defaultHues = {
+      0: 165,
+      1: 215,
+      2: 190,
+      3: 275,
+      4: 345,
+      5: 105,
+      6: 38,
+      7: 48,
+      8: 325
+    };
+    return {
+      projectName: typeof parsed.projectName === "string" && parsed.projectName.trim() ? parsed.projectName : "????????????",
+      cells: normalizeBackupCells(parsed.cells),
+      blockNames: normalizeStringMap(parsed.blockNames, DEFAULT_BLOCK_NAMES),
+      blockHues: normalizeHueMap(parsed.blockHues, defaultHues),
+      version: parsed.version || parsed.schemaVersion || "legacy"
+    };
+  };
+  const getImportErrorMessage = err => {
+    switch (err?.message) {
+      case "json_parse":
+        return "JSON???????????????????????????????????????";
+      case "not_mandala_backup":
+        return "??????????????????????";
+      case "cells_missing":
+      case "cells_shape":
+      case "backup_shape":
+        return "???????????????????????????????????????????";
+      default:
+        return "????????????????????????????????";
+    }
+  };
   const exportData = () => {
-    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify({
+    const payload = {
+      app: "mandala-chart",
+      version: 1,
+      createdAt: new Date().toISOString(),
       projectName,
       cells,
       blockNames,
       blockHues
-    }, null, 2));
-    const link = document.createElement('a');
-    link.setAttribute('href', dataUri);
-    link.setAttribute('download', `${projectName}_backup.json`);
+    };
+    const fileName = sanitizeBackupFileName(projectName) + "_backup.json";
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json;charset=utf-8"
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
     link.click();
-    showToast("バックアップJSONを書き出しました");
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast("??????????????" + fileName);
   };
   const importData = e => {
+    const file = e.target.files?.[0];
+    if (!file) return;
     const reader = new FileReader();
-    if (e.target.files?.[0]) {
-      reader.readAsText(e.target.files[0], "UTF-8");
-      reader.onload = ev => {
-        try {
-          const parsed = JSON.parse(ev.target.result);
-          if (parsed.cells) {
-            setCells(parsed.cells);
-            setProjectName(parsed.projectName || "");
-            setBlockNames(parsed.blockNames || {});
-            setBlockHues(parsed.blockHues || {});
-            showToast("バックアップデータをロードしました！");
-          }
-        } catch (err) {
-          alert("インポート中にエラーが発生しました。");
-        }
-      };
-    }
+    reader.onload = ev => {
+      try {
+        const restored = parseMandalaBackup(String(ev.target?.result || ""));
+        setCells(restored.cells);
+        setProjectName(restored.projectName);
+        setBlockNames(restored.blockNames);
+        setBlockHues(restored.blockHues);
+        setSelectedCell({
+          b: 4,
+          c: 4
+        });
+        setEditingCell(null);
+        setActivePaletteBlock(null);
+        setDialogState({
+          show: false
+        });
+        setTimeout(fitToScreen, 120);
+        showToast("??????????????" + restored.projectName);
+      } catch (err) {
+        alert(getImportErrorMessage(err));
+      } finally {
+        e.target.value = "";
+      }
+    };
+    reader.onerror = () => {
+      alert("?????????????????????JSON???????????????");
+      e.target.value = "";
+    };
+    reader.readAsText(file, "UTF-8");
   };
   const analyzedStats = useMemo(() => {
     const sectors = [];
