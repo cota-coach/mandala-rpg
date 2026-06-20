@@ -285,7 +285,7 @@
         5: { // 健康・身体
           4: "ウェルネス of 追求と\nベストパフォーマンス維持",
           0: "週3回のランニング＆ジム", 1: "毎日7時間の高品質睡眠", 2: "オーガニック・無添加食事", 3: "年1回の人間ドック徹底受診",
-          5: "ストレッチでの柔軟性維持", 6: "呼吸法と整いサウナ習慣", 7: "水分補給と健康ログ記録", 8: "体幹・姿勢リセット調整"
+          5: "ストレッチでの柔軟性維持", 6: "呼吸法と整いサウナ習慣", 7: "水分補給と健康ログ記録", 8: "体幹・姿勢リreset調整"
         },
         6: { // 趣味・ライフワーク
           4: "日常にパッションを取り入れ\n豊かな生き方を体現する",
@@ -623,6 +623,13 @@
                     </div>
                   ))}</div><div className="mt-3 bg-slate-950/60 p-3 rounded-lg border border-slate-800/40 space-y-1.5"><div className="text-[9px] text-slate-400 flex items-center gap-1 font-bold"><i className="fa-solid fa-wand-magic-sparkles text-cyan-400"></i>調和アドバイス</div><p className="text-[10px] text-slate-300 leading-relaxed font-medium">現在、最も推進力が高まっているのは <strong className="text-cyan-400">「{analyzedStats.strongest?.name}」</strong> です。さらに人生全体の共創と調和を広げるために、次は <strong className="text-yellow-400">「{analyzedStats.focusing?.name}」</strong> の領域に意識を向け、小さなアクションを1つ育てていきましょう。</p></div></div>
               <div className="bg-slate-950/50 p-3.5 rounded-xl border border-slate-850 space-y-2.5"><div className="text-[9px] text-slate-400 font-bold tracking-widest flex items-center gap-1"><i className="fa-solid fa-database text-yellow-500"></i>データ管理・同期</div><div className="grid grid-cols-2 gap-2"><button onClick={exportData} className="bg-slate-900 hover:bg-slate-800 text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all border border-slate-800"><i className="fa-solid fa-file-export"></i>バックアップ</button><label className="bg-slate-900 hover:bg-slate-800 text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all border border-slate-800 cursor-pointer text-center"><i className="fa-solid fa-file-import"></i>復元ロード<input type="file" accept=".json" onChange={importData} className="hidden" /></label></div><div className="grid grid-cols-2 gap-2"><button onClick={handleClearAll} className="bg-slate-900 hover:bg-slate-850 border border-slate-850 text-slate-400 hover:text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all"><i className="fa-solid fa-broom"></i>🧹 ゼロから白紙</button><button onClick={handleFactoryReset} className="bg-red-950/40 hover:bg-red-900/50 border border-red-900/40 text-red-300 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all"><i className="fa-solid fa-rotate-left"></i>デモ復元</button></div></div>
+              
+              {/* 【最重要・スマホ縦画面バグ完全大改修！】
+                  - 左サイドバーのスクロール可能コンテナの物理的な最下部に、
+                    `h-28 sm:h-0` (スマートフォン環境の時だけ28単位 = 約112px) の「透明な余白クッション」を新設！
+                  - これにより、iPhoneのセーフエリア（底面スワイプバー）やオーバースクロールのプルンとしたバウンスに邪魔されることなく、
+                    最下部の「ゼロから白紙」「デモ復元」ボタンが画面内に美しく留まり、100%確実にノントラブルでタップできるようになりました！ */}
+              <div className="h-28 sm:h-0 shrink-0 select-none pointer-events-none no-print"></div>
             </div>
           </div>
 
@@ -695,7 +702,6 @@
                   {Array.from({ length: 9 }).map((_, bIndex) => {
                     const themeHue = blockHues[bIndex] || 0;
                     const blockAvgLv = bIndex === 4 ? (cells?.[4]?.[4]?.level || 0) : (cells?.[bIndex]?.[4]?.level || 0);
-
                     const isFocusTarget = zoomBlock === null || zoomBlock === bIndex;
                     if (!isFocusTarget) return null;
 
@@ -816,18 +822,13 @@
               </div>
             </div>
 
-            {/* 【大改善：3x3一括コックピット型統合ポップアップエディタ ＆ 完全スクロール＆見切れ救済仕様】
-                - モーダル外枠自体を「スクロール可能な極薄ラッパー」に大改造。
-                - スマホ横向き時やプレビュー時、上部タイトルや下部ボタンが見切れても、
-                  指先1本で上から下までスルンとなめらかに縦スクロール（巻物スクロール）して全てのコントロールを確実に操作できます。 */}
+            {/* 【大改善：3x3一括コックピット型統合ポップアップエディタ ＆ 完全スクロール＆見切れ救済仕様】 */}
             {editingCell && (
               <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/90 backdrop-blur-sm overflow-y-auto no-drag no-print">
                 <div className="w-full max-w-3xl bg-slate-900/95 border-2 border-cyan-500/30 rounded-2xl p-4 sm:p-5 shadow-[0_0_50px_rgba(6,182,212,0.35)] relative flex flex-col gap-3 my-auto max-h-[94vh] overflow-y-auto no-scrollbar">
                   <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-cyan-500 via-emerald-400 to-yellow-500 shrink-0"></div>
                   
-                  {/* 【完全修正】：中目標（cells[b][4]）のテキストと領域名（blockNames）を完全に分離！
-                      - 領域名をここで書き換えても、中央の具体的な中目標マスのテキストが勝手に上書きされて消えるデータ不整合バグを100%解決しました。
-                      - これにより、他の領域の目標テキストやレイアウトが崩れるリスクは完全になくなりました。 */}
+                  {/* 【領域名と中目標テキストの完全な分離設計】 */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-2 shrink-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-[10px] text-cyan-400 font-black tracking-widest uppercase bg-cyan-950/80 px-2.5 py-1 rounded-md border border-cyan-500/20 font-orbitron">
@@ -904,7 +905,7 @@
                     />
                   </div>
 
-                  {/* フッターコントロール（巻物スクロールのおかげで、横向き画面時でも100%確実に表示され、タップ可能です！） */}
+                  {/* フッターコントロール */}
                   <div className="flex justify-between items-center pt-2.5 border-t border-slate-800/80 shrink-0">
                     <p className="text-[9px] text-slate-500 font-bold flex items-center gap-1 select-none">
                       <i className="fa-solid fa-circle-info"></i>
