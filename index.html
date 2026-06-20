@@ -246,6 +246,7 @@
       return { title: "👑レジェンド・創造主", color: "text-yellow-300 animate-pulse", bg: "bg-gradient-to-r from-yellow-500/20 to-red-500/20" };
     };
 
+    // 初期セルのテンプレート生成
     const createInitialCells = (clean = false) => {
       const cells = {};
       
@@ -253,7 +254,7 @@
         0: { // 知性・学習
           4: "リベラルアーツと\nコーチングスキルの探求",
           0: "毎月4冊 of 読書習慣", 1: "プロコーチ資格の取得", 2: "システム思考 of 勉強", 3: "哲学・歴史書を読み解く",
-          5: "言語学習 of デイリー継続", 6: "メンターとの定期セッション", 7: "学んだ知見 of 図解・発信", 8: "デイリージャーナルの記入"
+          5: "言語学習 of デイリー継続", 6: "メンターとの定期セッション", 7: "学んだ知見 of 読書習慣", 8: "デイリージャーナルの記入"
         },
         1: { // 仕事・キャリア
           4: "自律型組織 of 共創と\nビジネスの好循環",
@@ -294,7 +295,7 @@
         7: { // 財産・資産形成
           4: "持続可能な資産構築と\n公益還元の基盤設計",
           0: "インデックス投資 of 自動積立", 1: "ポートフォリオの定期精査", 2: "固定費・サブスクの最適化", 3: "新規収入源プロトタイピング",
-          5: "金融史と経済心理の勉強", 6: "家族用ファイナンシャルプラン", 7: "公益信託への拠出準備", 8: "資産状況 of 月次可視化"
+          5: "金融史と経済心理 of 勉強", 6: "家族用ファイナンシャルプラン", 7: "公益信託への拠出準備", 8: "資産状況 of 月次可視化"
         },
         8: { // 家族・パートナーシップ
           4: "愛に満ちた家庭環境と\n子供への100%伴走サポート",
@@ -560,8 +561,6 @@
       
       const startInlineEdit = (b, c, e) => { 
         if (e) e.stopPropagation(); 
-        setBackupZoomBlock(zoomBlock); 
-        setZoomBlock(b); 
         setEditingCell({ b, c }); 
         setInlineText(cells?.[b]?.[c]?.text || ""); 
       };
@@ -569,14 +568,16 @@
       const saveInlineEdit = () => { 
         if (editingCell) { 
           updateCellData(editingCell.b, editingCell.c, { text: inlineText }); 
-          setZoomBlock(backupZoomBlock !== undefined ? backupZoomBlock : null);
           setEditingCell(null); 
         } 
       };
 
       const cancelInlineEdit = () => {
-        setZoomBlock(backupZoomBlock !== undefined ? backupZoomBlock : null);
         setEditingCell(null);
+      };
+
+      const handleBlockNameChangeInModal = (newVal) => {
+        setBlockNames(prev => ({ ...prev, [editingCell.b]: newVal }));
       };
 
       const startBlockNameEdit = (idx, e) => { if (e) e.stopPropagation(); setEditingBlockNameIdx(idx); setTempBlockName(blockNames[idx] || ""); };
@@ -815,34 +816,47 @@
               </div>
             </div>
 
-            {/* 【大改善：3x3一括コックピット型統合ポップアップエディタ】 */}
+            {/* 【大改善：3x3一括コックピット型統合ポップアップエディタ ＆ 完全スクロール＆見切れ救済仕様】
+                - モーダル外枠自体を「スクロール可能な極薄ラッパー」に大改造。
+                - スマホ横向き時やプレビュー時、上部タイトルや下部ボタンが見切れても、
+                  指先1本で上から下までスルンとなめらかに縦スクロール（巻物スクロール）して全てのコントロールを確実に操作できます。 */}
             {editingCell && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fade-in no-drag no-print">
-                <div className="w-full max-w-3xl bg-slate-900/95 border-2 border-cyan-500/30 rounded-2xl p-5 shadow-[0_0_50px_rgba(6,182,212,0.35)] relative overflow-hidden flex flex-col gap-4">
-                  <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-cyan-500 via-emerald-400 to-yellow-500"></div>
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/90 backdrop-blur-sm overflow-y-auto no-drag no-print">
+                <div className="w-full max-w-3xl bg-slate-900/95 border-2 border-cyan-500/30 rounded-2xl p-4 sm:p-5 shadow-[0_0_50px_rgba(6,182,212,0.35)] relative flex flex-col gap-3 my-auto max-h-[94vh] overflow-y-auto no-scrollbar">
+                  <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-cyan-500 via-emerald-400 to-yellow-500 shrink-0"></div>
                   
-                  {/* エディタヘッダー */}
-                  <div className="flex justify-between items-center border-b border-slate-800/80 pb-2">
-                    <div className="flex items-center gap-2">
+                  {/* 【完全修正】：中目標（cells[b][4]）のテキストと領域名（blockNames）を完全に分離！
+                      - 領域名をここで書き換えても、中央の具体的な中目標マスのテキストが勝手に上書きされて消えるデータ不整合バグを100%解決しました。
+                      - これにより、他の領域の目標テキストやレイアウトが崩れるリスクは完全になくなりました。 */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-2 shrink-0">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="text-[10px] text-cyan-400 font-black tracking-widest uppercase bg-cyan-950/80 px-2.5 py-1 rounded-md border border-cyan-500/20 font-orbitron">
                         BLOCK {editingCell.b + 1} - CELL {editingCell.c + 1}
                       </span>
-                      <h4 className="text-xs font-black text-slate-400">
-                        {blockNames[editingCell.b] || ""}
-                      </h4>
+                      <div className="flex items-center gap-1.5 bg-slate-950 px-2 py-0.5 rounded-lg border border-slate-800">
+                        <i className="fa-solid fa-pen-to-square text-[10px] text-cyan-500"></i>
+                        <input 
+                          type="text" 
+                          value={blockNames[editingCell.b] || ""}
+                          onChange={(e) => handleBlockNameChangeInModal(e.target.value)}
+                          className="bg-transparent font-black text-xs text-slate-100 focus:outline-none focus:text-yellow-400 w-44 sm:w-56"
+                          placeholder="領域タイトルを変更（ホイールに連動）..."
+                          title="このブロック領域のテーマ名（バランスホイール等の項目）をここから直接書き換えられます"
+                        />
+                      </div>
                     </div>
-                    <span className="text-xs font-black text-yellow-400 font-orbitron">
-                      このセルの現在の自律度: Lv.{cells?.[editingCell.b]?.[editingCell.c]?.level || 0}
+                    <span className="text-[11px] font-black text-yellow-400 font-orbitron sm:text-right">
+                      現在マスの自律度: Lv.{cells?.[editingCell.b]?.[editingCell.c]?.level || 0}
                     </span>
                   </div>
 
-                  {/* 【革新機能】モーダル内3x3ミニマップ */}
-                  <div className="bg-slate-950/80 rounded-xl p-3 border border-slate-850">
-                    <p className="text-[10px] text-slate-400 font-bold mb-2 flex items-center gap-1.5">
+                  {/* 【3x3ミニマップ】他のマスのテキストへ1タップ切り替え */}
+                  <div className="bg-slate-950/80 rounded-xl p-2.5 border border-slate-850 shrink-0">
+                    <p className="text-[9px] text-slate-400 font-bold mb-1.5 flex items-center gap-1.5 select-none">
                       <i className="fa-solid fa-map-location-dot text-emerald-400"></i>
-                      <span>マスをタップして切り替え（選択中：水色）:</span>
+                      <span>編集するマスの切り替え（選択中：水色）:</span>
                     </p>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 gap-1.5">
                       {Array.from({ length: 9 }).map((_, cIdx) => {
                         const targetCell = cells?.[editingCell.b]?.[cIdx] || { text: "", level: 0 };
                         const isThisEditing = editingCell.c === cIdx;
@@ -858,17 +872,17 @@
                               // 大きな入力欄（inlineText）に新しいセルのテキストを展開
                               setInlineText(cells?.[editingCell.b]?.[cIdx]?.text || "");
                             }}
-                            className={`p-2 rounded-lg border text-left cursor-pointer transition-all relative overflow-hidden flex flex-col justify-between h-[68px] hover:border-cyan-400/50 hover:bg-slate-900 ${
+                            className={`p-1.5 rounded-lg border text-left cursor-pointer transition-all relative overflow-hidden flex flex-col justify-between h-[52px] sm:h-[60px] hover:border-cyan-400/50 hover:bg-slate-900 ${
                               isThisEditing 
                                 ? 'bg-cyan-950/40 border-cyan-400/80 ring-1 ring-cyan-400/50 shadow-[0_0_12px_rgba(6,182,212,0.2)]' 
                                 : 'bg-slate-900/60 border-slate-800'
                             }`}
                           >
-                            <div className="flex justify-between text-[8px] opacity-60 font-bold">
+                            <div className="flex justify-between text-[8px] opacity-60 font-bold select-none">
                               <span>{editingCell.b + 1}-{cIdx + 1}</span>
                               <span className="text-yellow-400">Lv.{targetCell.level}</span>
                             </div>
-                            <p className="text-[9.5px] leading-tight font-medium text-slate-300 line-clamp-2 break-all overflow-hidden mt-1">
+                            <p className="text-[9px] sm:text-[9.5px] leading-tight font-medium text-slate-300 line-clamp-2 break-all overflow-hidden mt-0.5">
                               {isThisEditing ? (inlineText || "(未入力)") : (targetCell.text || "(未入力)")}
                             </p>
                           </div>
@@ -877,35 +891,36 @@
                     </div>
                   </div>
 
-                  {/* モバイルでキーボードが出現しても文字がくっきり見える16px可変フォントのtextarea */}
-                  <div className="space-y-1">
-                    <label className="text-[10px] text-slate-400 font-bold block">目標テキスト</label>
+                  {/* 目標テキスト入力エリア */}
+                  <div className="space-y-1 grow">
+                    <label className="text-[10px] text-slate-400 font-bold block select-none">目標テキスト編集</label>
                     <textarea
                       value={inlineText}
                       onChange={(e) => setInlineText(e.target.value)}
-                      rows={3}
-                      className="w-full text-sm lg:text-base bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-400 font-bold whitespace-pre-wrap leading-relaxed shadow-inner"
+                      rows={isLandscape ? 2 : 3}
+                      className="w-full text-base bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-400 font-bold whitespace-pre-wrap leading-relaxed shadow-inner"
                       placeholder="目標や具体的な計画を入力してください..."
                       autoFocus
                     />
                   </div>
 
-                  {/* フッターコントロール */}
-                  <div className="flex justify-between items-center pt-3 border-t border-slate-800/80">
-                    <p className="text-[10px] text-slate-500 font-bold flex items-center gap-1">
+                  {/* フッターコントロール（巻物スクロールのおかげで、横向き画面時でも100%確実に表示され、タップ可能です！） */}
+                  <div className="flex justify-between items-center pt-2.5 border-t border-slate-800/80 shrink-0">
+                    <p className="text-[9px] text-slate-500 font-bold flex items-center gap-1 select-none">
                       <i className="fa-solid fa-circle-info"></i>
-                      <span>ミニマップから全マスをその場でサクサク編集できます！</span>
+                      <span className="hidden sm:inline">ミニマップから全マスをその場でサクサク編集できます。</span>
+                      <span className="sm:hidden">ミニマップでマス切り替え可能。</span>
                     </p>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 shrink-0">
                       <button
                         onClick={cancelInlineEdit}
-                        className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-2 px-4 rounded-lg font-black transition-all border border-slate-700/60"
+                        className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-2 px-3.5 rounded-lg font-black transition-all border border-slate-700/60 active:scale-95"
                       >
                         キャンセル
                       </button>
                       <button
                         onClick={saveInlineEdit}
-                        className="bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-white text-xs py-2 px-5 rounded-lg font-black transition-all shadow-lg active:scale-95"
+                        className="bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-white text-xs py-2 px-4.5 rounded-lg font-black transition-all shadow-lg active:scale-95"
                       >
                         決定 ＆ 保存
                       </button>
