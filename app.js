@@ -1,0 +1,1616 @@
+const {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback
+} = React;
+
+// 20色のプレミアムカラーパレット（ベース色相リスト）
+const PRESET_HUES = [{
+  name: "ディープコバルト",
+  hue: 215
+}, {
+  name: "フォレストグリーン",
+  hue: 145
+}, {
+  name: "バーガンディレッド",
+  hue: 345
+}, {
+  name: "ロイヤルパープル",
+  hue: 275
+}, {
+  name: "ミッドナイトブルー",
+  hue: 235
+}, {
+  name: "エメラルドグリーン",
+  hue: 165
+}, {
+  name: "テラコッタオレンジ",
+  hue: 20
+}, {
+  name: "マリーゴールドゴールド",
+  hue: 48
+}, {
+  name: "インペリアルプラム",
+  hue: 300
+}, {
+  name: "オリーブドラブ",
+  hue: 85
+}, {
+  name: "スカイネオン",
+  hue: 195
+}, {
+  name: "ポイズンシアン",
+  hue: 180
+}, {
+  name: "ローズマダー",
+  hue: 325
+}, {
+  name: "アッシュグレー",
+  hue: 200
+}, {
+  name: "サフランイエロー",
+  hue: 38
+}, {
+  name: "リーフミント",
+  hue: 120
+}, {
+  name: "クリムゾンフラッシュ",
+  hue: 0
+}, {
+  name: "アイオライトバイオレット",
+  hue: 255
+}, {
+  name: "マホガニーブラウン",
+  hue: 12
+}, {
+  name: "サンドカーキ",
+  hue: 33
+}];
+
+// デフォルトの8領域
+const DEFAULT_BLOCK_NAMES = {
+  0: "1. 知性・学習",
+  1: "2. 仕事・キャリア",
+  2: "3. 社会貢献・公益",
+  3: "4. 心・精神性",
+  4: "5. 人生の大目標",
+  5: "6. 健康・身体",
+  6: "7. 趣味・ライフワーク",
+  7: "8. 財産・資産形成",
+  8: "9. 家族・パートナー"
+};
+
+// グローバルタッチヘルパー
+const getDistance = (t1, t2) => {
+  const dx = t1.clientX - t2.clientX;
+  const dy = t1.clientY - t2.clientY;
+  return Math.sqrt(dx * dx + dy * dy);
+};
+const getCenter = (t1, t2) => {
+  return {
+    x: (t1.clientX + t2.clientX) / 2,
+    y: (t1.clientY + t2.clientY) / 2
+  };
+};
+
+// 【100%エラーフリー・極上マルチConfettiエンジン】
+const triggerConfettiShow = (isAbsoluteCenter = false) => {
+  if (typeof confetti !== 'function') return;
+  if (isAbsoluteCenter) {
+    // 大目標平均Lv.100時のレジェンド級お祝い（左右からクロスして無限に舞い散るお祭り仕様）
+    const end = Date.now() + 2 * 1000;
+    const frame = () => {
+      confetti({
+        particleCount: 6,
+        angle: 60,
+        spread: 55,
+        origin: {
+          x: 0,
+          y: 0.8
+        }
+      });
+      confetti({
+        particleCount: 6,
+        angle: 120,
+        spread: 55,
+        origin: {
+          x: 1,
+          y: 0.8
+        }
+      });
+      if (Date.now() < end) requestAnimationFrame(frame);
+    };
+    frame();
+    return;
+  }
+
+  // 通常マスのレベル100達成：脳に最高のご褒美となるお祝いパターン。
+  const randomAngle = 65 + Math.random() * 50;
+  const randomSpread = 60 + Math.random() * 40;
+  const randomX = 0.3 + Math.random() * 0.4;
+  confetti({
+    particleCount: 110 + Math.floor(Math.random() * 50),
+    angle: randomAngle,
+    spread: randomSpread,
+    velocity: 32 + Math.random() * 12,
+    origin: {
+      x: randomX,
+      y: 0.65
+    }
+  });
+};
+
+// レベルランクの称号テキスト計算
+const getRankTitle = lvl => {
+  if (lvl === 0) return {
+    title: "未開の種子",
+    color: "text-slate-400",
+    bg: "bg-slate-800"
+  };
+  if (lvl <= 30) return {
+    title: "ブロンズ・開拓者",
+    color: "text-amber-500",
+    bg: "bg-amber-500/10"
+  };
+  if (lvl <= 60) return {
+    title: "シルバー・探索者",
+    color: "text-slate-300",
+    bg: "bg-slate-300/10"
+  };
+  if (lvl <= 90) return {
+    title: "ゴールド・覇者",
+    color: "text-yellow-400",
+    bg: "bg-yellow-400/10"
+  };
+  if (lvl <= 99) return {
+    title: "プラチナ・マスター",
+    color: "text-cyan-400",
+    bg: "bg-cyan-400/10"
+  };
+  return {
+    title: "👑レジェンド・創造主",
+    color: "text-yellow-300 animate-pulse",
+    bg: "bg-gradient-to-r from-yellow-500/20 to-red-500/20"
+  };
+};
+
+// 初期セルのテンプレート生成
+const createInitialCells = (clean = false) => {
+  const cells = {};
+  const samples = {
+    0: {
+      // 知性・学習
+      4: "リベラルアーツと\nコーチングスキルの探求",
+      0: "毎月4冊 of 読書習慣",
+      1: "プロコーチ資格の取得",
+      2: "システム思考 of 勉強",
+      3: "哲学・歴史書を読み解く",
+      5: "言語学習 of デイリー継続",
+      6: "メンターとの定期セッション",
+      7: "学んだ知見 of 図解・発信",
+      8: "デイリージャーナルの記入"
+    },
+    1: {
+      // 仕事・キャリア
+      4: "自律型組織 of 共創と\nビジネスの好循環",
+      0: "ビジョン・ミッション再定義",
+      1: "新規プロジェクト of プロト",
+      2: "週1回の1on1ミーティング",
+      3: "権限移譲と自律サポート",
+      5: "業務自動化による効率化",
+      6: "戦略的パートナーシップ構築",
+      7: "顧客フィードバック of 高速循環",
+      8: "リーダーシップ研修の開催"
+    },
+    2: {
+      // 社会貢献・公益
+      4: "地域コミュニティ活性化と\n公益への持続的還元",
+      0: "地域公益活動への積極参画",
+      1: "自律コミュニティの立ち上げ",
+      2: "異業種ネットワーキング",
+      3: "若手世代の自立伴走メンター",
+      5: "活動拠点的スペース提供",
+      6: "チャリティプロジェクト企画",
+      7: "地元イベントの企画・協賛",
+      8: "社会的投資(ソーシャルビジネス)"
+    },
+    3: {
+      // 心・精神性
+      4: "マインドフルネスの確立と\n揺るぎない自己信頼",
+      0: "朝20分の瞑想習慣",
+      1: "感謝日記 of 毎晩アウトプット",
+      2: "感情のセルフモニタリング",
+      3: "週末デジタルデトックス",
+      5: "心のノイズを削ぎ落とす",
+      6: "聖典や名著からの学び",
+      7: "自然と調和する時間の確保",
+      8: "自己一致 of ライフワーク追求"
+    },
+    4: {
+      // 人生の大目標
+      4: "公益と利他をゴールに含む\n規律をカオスな世の中に広げる",
+      0: "リベラルアーツと\nコーチングスキルの探求",
+      1: "自律型組織 of 共創と\nビジネス of 好循環",
+      2: "地域コミュニティ活性化と\n公益への持続的還元",
+      3: "マインドフルネスの確立と\n揺るぎない自己信頼",
+      5: "ウェルネス of 追求と\nベストパフォーマンス維持",
+      6: "日常にパッションを取り入れ\n豊かな生き方を體現する",
+      7: "持続可能な資産構築と\n公益還元の基盤設計",
+      8: "愛に満ちた家庭環境と\n子供への100%伴走サポート"
+    },
+    5: {
+      // 健康・身体
+      4: "ウェルネス of 追求と\nベストパフォーマンス維持",
+      0: "週3回のランニング＆ジム",
+      1: "毎日7時間の高品質睡眠",
+      2: "オーガニック・無添加食事",
+      3: "年1回の人間ドック徹底受診",
+      5: "ストレッチでの柔軟性維持",
+      6: "呼吸法と整いサウナ習慣",
+      7: "水分補給と健康ログ記録",
+      8: "体幹・姿勢リセット調整"
+    },
+    6: {
+      // 趣味・ライフワーク
+      4: "日常にパッションを取り入れ\n豊かな生き方を体現する",
+      0: "カメラを手に週末散策",
+      1: "週末ソフトテニスのサポート",
+      2: "アートや音楽に触れる日",
+      3: "ブログ等での創作表現",
+      5: "未体験ジャンルへの挑戦",
+      6: "大自然でのキャンプ・冒険",
+      7: "気の合う仲間との語らい",
+      8: "感動アイデアノートの構築"
+    },
+    7: {
+      // 財産・資産形成
+      4: "持続可能な資産構築と\n公益還元の基盤設計",
+      0: "インデックス投資 of 自動積立",
+      1: "ポートフォリオの定期精査",
+      2: "固定費・サブスクの最適化",
+      3: "新規収入源プロトタイピング",
+      5: "金融史と経済心理 of 勉強",
+      6: "家族用ファイナンシャルプラン",
+      7: "公益信託への拠出準備",
+      8: "資産状況 of 月次可視化"
+    },
+    8: {
+      // 家族・パートナーシップ
+      4: "愛に満ちた家庭環境と\n子供への100%伴走サポート",
+      0: "感謝と労いの日常的な言葉掛け",
+      1: "週末の家族だんらんディナー",
+      2: "パートナーとの対話時間の確保",
+      3: "子供のテニス試合 of 全力応援",
+      5: "快適で整ったリビング空間",
+      6: "親族・両親への定期的連絡",
+      7: "記念日のパーソナルサプライズ",
+      8: "家族みんなで創る未来ビジョン"
+    }
+  };
+  for (let b = 0; b < 9; b++) {
+    cells[b] = {};
+    for (let c = 0; c < 9; c++) {
+      let initialText = "";
+      if (!clean) {
+        initialText = samples[b][c];
+      } else {
+        if (b === 4 && c === 4) initialText = "【人生の大目標】";else if (c === 4) initialText = `【中目標 ${b + 1}】`;else initialText = "";
+      }
+      cells[b][c] = {
+        text: initialText,
+        level: 0,
+        memo: ""
+      };
+    }
+  }
+  return cells;
+};
+function App() {
+  const [cells, setCells] = useState(() => {
+    try {
+      const saved = localStorage.getItem("mandala_rpg_cells_v3");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        let isValid = true;
+        for (let b = 0; b < 9; b++) {
+          if (!parsed[b] || typeof parsed[b] !== 'object') {
+            isValid = false;
+            break;
+          }
+          for (let c = 0; c < 9; c++) {
+            if (!parsed[b][c] || typeof parsed[b][c] !== 'object' || parsed[b][c].level === undefined) {
+              isValid = false;
+              break;
+            }
+          }
+        }
+        if (isValid) return parsed;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return createInitialCells();
+  });
+  const [projectName, setProjectName] = useState(() => {
+    return localStorage.getItem("mandala_rpg_project_name_v3") || "ライフキャリア・クロニクル";
+  });
+  const [blockNames, setBlockNames] = useState(() => {
+    try {
+      const saved = localStorage.getItem("mandala_rpg_block_names_v3");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object' && parsed[8]) return parsed;
+      }
+    } catch (e) {}
+    return {
+      ...DEFAULT_BLOCK_NAMES
+    };
+  });
+  const [blockHues, setBlockHues] = useState(() => {
+    try {
+      const saved = localStorage.getItem("mandala_rpg_block_hues_v3");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object' && parsed[8] !== undefined) return parsed;
+      }
+    } catch (e) {}
+    return {
+      0: 165,
+      1: 215,
+      2: 190,
+      3: 275,
+      4: 345,
+      5: 105,
+      6: 38,
+      7: 48,
+      8: 325
+    };
+  });
+  const [selectedCell, setSelectedCell] = useState({
+    b: 4,
+    c: 4
+  });
+  const [zoomBlock, setZoomBlock] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isDragging, setIsDragging] = useState(false);
+  const [scrollOffset, setScrollOffset] = useState({
+    x: 0,
+    y: 0
+  });
+  const [dragStart, setDragStart] = useState({
+    x: 0,
+    y: 0
+  });
+  const [scale, setScale] = useState(0.5);
+  const [printEconomy, setPrintEconomy] = useState(false);
+  const [fullPrintMode, setFullPrintMode] = useState(false);
+  const [editingCell, setEditingCell] = useState(null);
+  const [inlineText, setInlineText] = useState("");
+  const [activePaletteBlock, setActivePaletteBlock] = useState(null);
+  const [editingBlockNameIdx, setEditingBlockNameIdx] = useState(null);
+  const [tempBlockName, setTempBlockName] = useState("");
+  const [backupZoomBlock, setBackupZoomBlock] = useState(null);
+  const [dialogState, setDialogState] = useState({
+    show: false,
+    type: "",
+    title: "",
+    text: "",
+    onConfirm: null
+  });
+  const [toastText, setToastText] = useState("");
+  const dragStartPos = useRef({
+    x: 0,
+    y: 0
+  });
+  const isMoved = useRef(false);
+  const boardContainerRef = useRef(null);
+  const touchStartDistRef = useRef(0);
+  const touchStartScaleRef = useRef(1);
+  const isPinchingRef = useRef(false);
+  const touchStartOffsetRef = useRef({
+    x: 0,
+    y: 0
+  });
+  const touchStartCenterRef = useRef({
+    x: 0,
+    y: 0
+  });
+  useEffect(() => {
+    localStorage.setItem("mandala_rpg_cells_v3", JSON.stringify(cells));
+  }, [cells]);
+  useEffect(() => {
+    localStorage.setItem("mandala_rpg_project_name_v3", projectName);
+  }, [projectName]);
+  useEffect(() => {
+    localStorage.setItem("mandala_rpg_block_names_v3", JSON.stringify(blockNames));
+  }, [blockNames]);
+  useEffect(() => {
+    localStorage.setItem("mandala_rpg_block_hues_v3", JSON.stringify(blockHues));
+  }, [blockHues]);
+  const showToast = msg => {
+    setToastText(msg);
+    setTimeout(() => setToastText(""), 2500);
+  };
+  const handleResizeAndOrientation = () => {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const hasTouchScreen = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const mobile = isMobileUA || hasTouchScreen && width < 1024;
+    const landscape = height < 550 && width > height;
+    setIsMobile(mobile || landscape);
+    setIsLandscape(landscape);
+    if (!mobile && !landscape) {
+      setIsSidebarOpen(true);
+    } else {
+      setIsSidebarOpen(false);
+    }
+  };
+  const fitToScreen = useCallback(() => {
+    if (!boardContainerRef.current) return;
+    const containerWidth = boardContainerRef.current.clientWidth;
+    const containerHeight = boardContainerRef.current.clientHeight;
+    if (containerWidth < 50 || containerHeight < 50) return;
+    const boardW = 1722;
+    const boardH = 1137;
+    const scaleX = containerWidth / boardW;
+    const scaleY = containerHeight / boardH;
+    const marginFactor = isMobile ? 0.96 : 0.94;
+    const bestScale = Math.min(scaleX, scaleY) * marginFactor;
+    const clampedScale = Math.max(0.12, Math.min(2.0, bestScale));
+    const offsetX = (containerWidth - boardW * clampedScale) / 2;
+    const offsetY = (containerHeight - boardH * clampedScale) / 2;
+    setScale(clampedScale);
+    setScrollOffset({
+      x: offsetX,
+      y: offsetY
+    });
+  }, [isMobile]);
+  useEffect(() => {
+    handleResizeAndOrientation();
+    window.addEventListener("resize", handleResizeAndOrientation);
+    return () => window.removeEventListener("resize", handleResizeAndOrientation);
+  }, []);
+  useEffect(() => {
+    if (!boardContainerRef.current) return;
+    const observer = new ResizeObserver(() => {
+      window.requestAnimationFrame(() => {
+        fitToScreen();
+      });
+    });
+    observer.observe(boardContainerRef.current);
+    return () => observer.disconnect();
+  }, [fitToScreen, isSidebarOpen, zoomBlock]);
+  useEffect(() => {
+    const board = boardContainerRef.current;
+    if (!board) return;
+    const handleWheel = e => {
+      e.preventDefault();
+      const zoomFactor = 1.06;
+      let nextScale = scale;
+      if (e.deltaY < 0) {
+        nextScale = Math.min(2.0, scale * zoomFactor);
+      } else {
+        nextScale = Math.max(0.12, scale / zoomFactor);
+      }
+      if (nextScale === scale) return;
+      const rect = board.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      const boardX = (mouseX - scrollOffset.x) / scale;
+      const boardY = (mouseY - scrollOffset.y) / scale;
+      const nextOffsetX = mouseX - boardX * nextScale;
+      const nextOffsetY = mouseY - boardY * nextScale;
+      setScale(nextScale);
+      setScrollOffset({
+        x: nextOffsetX,
+        y: nextOffsetY
+      });
+    };
+    board.addEventListener('wheel', handleWheel, {
+      passive: false
+    });
+    return () => {
+      board.removeEventListener('wheel', handleWheel);
+    };
+  }, [scale, scrollOffset]);
+  useEffect(() => {
+    const container = boardContainerRef.current;
+    if (!container) return;
+    const handleTouchStart = e => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        isPinchingRef.current = true;
+        setIsDragging(false);
+        const dist = getDistance(e.touches[0], e.touches[1]);
+        touchStartDistRef.current = dist;
+        touchStartScaleRef.current = scale;
+        const center = getCenter(e.touches[0], e.touches[1]);
+        touchStartCenterRef.current = center;
+        touchStartOffsetRef.current = {
+          ...scrollOffset
+        };
+      } else if (e.touches.length === 1 && !isPinchingRef.current) {
+        handleDragStart(e.touches[0].clientX, e.touches[0].clientY, e.target);
+      }
+    };
+    const handleTouchMove = e => {
+      if (e.touches.length === 2 && isPinchingRef.current) {
+        e.preventDefault();
+        const dist = getDistance(e.touches[0], e.touches[1]);
+        const currentScale = touchStartScaleRef.current * (dist / touchStartDistRef.current);
+        const clampedScale = Math.max(0.12, Math.min(2.0, currentScale));
+        const rect = container.getBoundingClientRect();
+        const center = getCenter(e.touches[0], e.touches[1]);
+        const centerX = center.x - rect.left;
+        const centerY = center.y - rect.top;
+        const startCenterX = touchStartCenterRef.current.x - rect.left;
+        const startCenterY = touchStartCenterRef.current.y - rect.top;
+        const boardX = (startCenterX - touchStartOffsetRef.current.x) / touchStartScaleRef.current;
+        const boardY = (startCenterY - touchStartOffsetRef.current.y) / touchStartScaleRef.current;
+        const nextOffsetX = centerX - boardX * clampedScale;
+        const nextOffsetY = centerY - boardY * clampedScale;
+        setScale(clampedScale);
+        setScrollOffset({
+          x: nextOffsetX,
+          y: nextOffsetY
+        });
+      } else if (e.touches.length === 1 && !isPinchingRef.current) {
+        handleDragMove(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    };
+    const handleTouchEnd = e => {
+      if (e.touches.length < 2) isPinchingRef.current = false;
+      handleDragEnd();
+    };
+    container.addEventListener('touchstart', handleTouchStart, {
+      passive: false
+    });
+    container.addEventListener('touchmove', handleTouchMove, {
+      passive: false
+    });
+    container.addEventListener('touchend', handleTouchEnd);
+    return () => {
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [scale, scrollOffset, isDragging, zoomBlock, isSidebarOpen, isLandscape]);
+  const currentCellData = cells?.[selectedCell.b]?.[selectedCell.c] || {
+    text: "",
+    level: 0,
+    memo: ""
+  };
+  const handleDragStart = (clientX, clientY, target) => {
+    if (target.closest('.no-drag') || target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.tagName === 'BUTTON') return;
+    setIsDragging(true);
+    isMoved.current = false;
+    dragStartPos.current = {
+      x: clientX,
+      y: clientY
+    };
+    setDragStart({
+      x: clientX - scrollOffset.x,
+      y: clientY - scrollOffset.y
+    });
+  };
+  const handleDragMove = (clientX, clientY) => {
+    if (!isDragging) return;
+    const dx = Math.abs(clientX - dragStartPos.current.x);
+    const dy = Math.abs(clientY - dragStartPos.current.y);
+    if (dx > 4 || dy > 4) isMoved.current = true;
+    setScrollOffset({
+      x: clientX - dragStart.x,
+      y: clientY - dragStart.y
+    });
+  };
+  const onMouseDown = e => {
+    handleDragStart(e.clientX, e.clientY, e.target);
+  };
+  const onMouseMove = e => {
+    handleDragMove(e.clientX, e.clientY);
+  };
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+  const changeScaleStep = delta => {
+    const container = boardContainerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const boardX = (centerX - scrollOffset.x) / scale;
+    const boardY = (centerY - scrollOffset.y) / scale;
+    const nextScale = Math.max(0.12, Math.min(2.0, scale + delta));
+    const nextOffsetX = centerX - boardX * nextScale;
+    const nextOffsetY = centerY - boardY * nextScale;
+    setScale(nextScale);
+    setScrollOffset({
+      x: nextOffsetX,
+      y: nextOffsetY
+    });
+  };
+  const getCellColorAndStyle = (b, c, level) => {
+    if (printEconomy) {
+      if (b === 4 && c === 4) return {
+        className: "border-2 border-black bg-slate-100 text-black",
+        style: {}
+      };
+      return {
+        className: "border border-slate-300 bg-white text-black",
+        style: {}
+      };
+    }
+    const hue = blockHues[b] || 0;
+    if (level === 0) return {
+      className: "border border-slate-800 text-slate-300 shadow-inner hover:border-slate-700/60",
+      style: {
+        background: `hsl(${hue}, 20%, 15%)`
+      }
+    };
+    if (level === 100) return {
+      className: "animate-aurora border-[3px] border-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.7)] text-slate-900 font-black relative overflow-hidden",
+      style: {
+        background: `linear-gradient(135deg, hsl(${hue}, 95%, 65%), hsl(${(hue + 120) % 360}, 95%, 70%), hsl(${(hue + 240) % 360}, 95%, 65%))`
+      }
+    };
+    let bgStyle = {};
+    let className = "border-slate-800 text-slate-100";
+    if (level <= 30) {
+      const progress = (level - 1) / 29;
+      bgStyle = {
+        background: `hsl(${hue}, ${25 + progress * 15}%, ${28 + progress * 5}%)`
+      };
+      className = "border border-slate-700/50 shadow-inner";
+    } else if (level <= 60) {
+      const progress = (level - 31) / 29;
+      bgStyle = {
+        background: `linear-gradient(135deg, hsl(${hue}, ${40 + progress * 20}%, ${33 + progress * 5}%), #2c3e50)`
+      };
+      className = "border-[1.5px] border-slate-400/60 shadow-[0_0_12px_rgba(148,163,184,0.18)]";
+    } else if (level <= 90) {
+      const progress = (level - 61) / 29;
+      bgStyle = {
+        background: `linear-gradient(135deg, hsl(${hue}, ${60 + progress * 25}%, ${38 - progress * 5}%), #713f12)`
+      };
+      className = "border-2 border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.22)] font-semibold";
+    } else {
+      const progress = (level - 91) / 8;
+      bgStyle = {
+        background: `linear-gradient(135deg, hsl(${hue}, ${85 + progress * 13}%, ${34 + progress * 5}%), #0891b2, hsl(${(hue + 45) % 360}, 95%, 45%))`
+      };
+      className = "border-2 border-cyan-400 shadow-[0_0_18px_rgba(6,182,212,0.35)] font-extrabold animate-pulse-slow";
+    }
+    return {
+      className,
+      style: bgStyle
+    };
+  };
+  const updateCellData = (b, c, updates) => {
+    setCells(prev => {
+      const next = JSON.parse(JSON.stringify(prev));
+      if (!next[b]) next[b] = {};
+      if (!next[b][c]) next[b][c] = {
+        text: "",
+        level: 0,
+        memo: ""
+      };
+      next[b][c] = {
+        ...next[b][c],
+        ...updates
+      };
+      if (b !== 4 && c === 4) {
+        if (!next[4]) next[4] = {};
+        if (!next[4][b]) next[4][b] = {
+          text: "",
+          level: 0,
+          memo: ""
+        };
+        next[4][b].text = next[b][4].text;
+        next[4][b].memo = next[b][4].memo;
+      } else if (b === 4 && c !== 4) {
+        if (!next[c]) next[c] = {};
+        if (!next[c][4]) next[c][4] = {
+          text: "",
+          level: 0,
+          memo: ""
+        };
+        next[c][4].text = next[4][c].text;
+        next[c][4].memo = next[4][c].memo;
+      }
+      for (let i = 0; i < 9; i++) {
+        if (i === 4) continue;
+        let sum = 0;
+        for (let j = 0; j < 9; j++) {
+          if (j === 4) continue;
+          sum += next[i]?.[j]?.level || 0;
+        }
+        const avg = Math.round(sum / 8);
+        if (!next[i]) next[i] = {};
+        if (!next[i][4]) next[i][4] = {
+          text: "",
+          level: 0,
+          memo: ""
+        };
+        if (!next[4]) next[4] = {};
+        if (!next[4][i]) next[4][i] = {
+          text: "",
+          level: 0,
+          memo: ""
+        };
+        next[i][4].level = avg;
+        next[4][i].level = avg;
+      }
+      let centerSum = 0;
+      for (let i = 0; i < 9; i++) {
+        if (i === 4) continue;
+        centerSum += next[4]?.[i]?.level || 0;
+      }
+      const centerAvg = Math.round(centerSum / 8);
+      if (!next[4]) next[4] = {};
+      if (!next[4][4]) next[4][4] = {
+        text: "",
+        level: 0,
+        memo: ""
+      };
+      if (next[4][4].level !== centerAvg && centerAvg === 100) {
+        setTimeout(() => triggerConfettiShow(true), 350);
+      }
+      next[4][4].level = centerAvg;
+      return next;
+    });
+    if (updates.level === 100) triggerConfettiShow(false);
+  };
+  const adjustLevel = (b, c, delta) => {
+    if (b === 4 || c === 4) return;
+    const nextLvl = Math.max(0, Math.min(100, (cells?.[b]?.[c]?.level || 0) + delta));
+    updateCellData(b, c, {
+      level: nextLvl
+    });
+  };
+  const startInlineEdit = (b, c, e) => {
+    if (e) e.stopPropagation();
+    setEditingCell({
+      b,
+      c
+    });
+    setInlineText(cells?.[b]?.[c]?.text || "");
+  };
+  const saveInlineEdit = () => {
+    if (editingCell) {
+      updateCellData(editingCell.b, editingCell.c, {
+        text: inlineText
+      });
+      setEditingCell(null);
+    }
+  };
+  const cancelInlineEdit = () => {
+    setEditingCell(null);
+  };
+  const handleBlockNameChangeInModal = newVal => {
+    setBlockNames(prev => ({
+      ...prev,
+      [editingCell.b]: newVal
+    }));
+  };
+  const startBlockNameEdit = (idx, e) => {
+    if (e) e.stopPropagation();
+    setEditingBlockNameIdx(idx);
+    setTempBlockName(blockNames[idx] || "");
+  };
+  const saveBlockNameEdit = idx => {
+    if (tempBlockName.trim() === "") return;
+    setBlockNames(prev => ({
+      ...prev,
+      [idx]: tempBlockName
+    }));
+    setEditingBlockNameIdx(null);
+    showToast(`領域名を「${tempBlockName}」に変更しました`);
+  };
+  const handleFactoryReset = () => {
+    setDialogState({
+      show: true,
+      type: "danger",
+      title: "傑作デモ復元",
+      text: "現在の入力データを全て消去し、コーチング・ライフプラン最適化のテンプレート（Lv.0スタート）に完全復元します。よろしいですか？",
+      onConfirm: () => {
+        setCells(createInitialCells(false));
+        setBlockNames({
+          ...DEFAULT_BLOCK_NAMES
+        });
+        setBlockHues({
+          0: 165,
+          1: 215,
+          2: 190,
+          3: 275,
+          4: 345,
+          5: 105,
+          6: 38,
+          7: 48,
+          8: 325
+        });
+        setProjectName("ライフキャリア・クロニクル");
+        setSelectedCell({
+          b: 4,
+          c: 4
+        });
+        setDialogState({
+          show: false
+        });
+        setTimeout(fitToScreen, 100);
+        showToast("デモのコーチング設計図を復元しました！");
+      }
+    });
+  };
+  const handleClearAll = () => {
+    setDialogState({
+      show: true,
+      type: "warning",
+      title: "ゼロから白紙化",
+      text: "すべての文字を白紙にクリアし、レベルも完全に「0」にリセットします。あなたの独自のテーマで白紙からスタートします。よろしいですか？",
+      onConfirm: () => {
+        setCells(createInitialCells(true));
+        const neutralNames = {};
+        for (let i = 0; i < 9; i++) neutralNames[i] = i === 4 ? "5. 人生の大目標" : `領域 ${i + 1}`;
+        setBlockNames(neutralNames);
+        setBlockHues({
+          0: 215,
+          1: 145,
+          2: 345,
+          3: 275,
+          4: 235,
+          5: 165,
+          6: 20,
+          7: 48,
+          8: 85
+        });
+        setProjectName("マイ・ロードマップ");
+        setSelectedCell({
+          b: 4,
+          c: 4
+        });
+        setDialogState({
+          show: false
+        });
+        setTimeout(fitToScreen, 100);
+        showToast("完全な白紙ボードを用意しました！");
+      }
+    });
+  };
+  const exportData = () => {
+    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify({
+      projectName,
+      cells,
+      blockNames,
+      blockHues
+    }, null, 2));
+    const link = document.createElement('a');
+    link.setAttribute('href', dataUri);
+    link.setAttribute('download', `${projectName}_backup.json`);
+    link.click();
+    showToast("バックアップJSONを書き出しました");
+  };
+  const importData = e => {
+    const reader = new FileReader();
+    if (e.target.files?.[0]) {
+      reader.readAsText(e.target.files[0], "UTF-8");
+      reader.onload = ev => {
+        try {
+          const parsed = JSON.parse(ev.target.result);
+          if (parsed.cells) {
+            setCells(parsed.cells);
+            setProjectName(parsed.projectName || "");
+            setBlockNames(parsed.blockNames || {});
+            setBlockHues(parsed.blockHues || {});
+            showToast("バックアップデータをロードしました！");
+          }
+        } catch (err) {
+          alert("インポート中にエラーが発生しました。");
+        }
+      };
+    }
+  };
+  const analyzedStats = useMemo(() => {
+    const sectors = [];
+    let totalAvg = 0;
+    for (let i = 0; i < 9; i++) {
+      if (i === 4) continue;
+      let sum = 0;
+      for (let j = 0; j < 9; j++) {
+        if (j === 4) continue;
+        sum += cells?.[i]?.[j]?.level || 0;
+      }
+      const avg = Math.round(sum / 8);
+      sectors.push({
+        idx: i,
+        name: blockNames[i] || `領域 ${i + 1}`,
+        avg
+      });
+      totalAvg += avg;
+    }
+    const sorted = [...sectors].sort((a, b) => b.avg - a.avg);
+    return {
+      sectors,
+      overall: Math.round(totalAvg / 8),
+      strongest: sorted[0] || {
+        name: "未設定"
+      },
+      focusing: sorted[sorted.length - 1] || {
+        name: "未設定"
+      }
+    };
+  }, [cells, blockNames]);
+  const currentRank = getRankTitle(cells?.[4]?.[4]?.level || 0);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "flex h-full w-full overflow-hidden select-none relative bg-[#070a13]"
+  }, toastText && /*#__PURE__*/React.createElement("div", {
+    className: "fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-slate-900 border-2 border-cyan-500/80 text-cyan-200 px-6 py-3 rounded-full text-xs font-bold shadow-[0_0_20px_rgba(6,182,212,0.5)] animate-bounce flex items-center gap-2 backdrop-blur"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-sparkles text-yellow-400"
+  }), toastText), dialogState.show && /*#__PURE__*/React.createElement("div", {
+    className: "fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in no-drag"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-full max-w-md bg-slate-900 border-2 border-slate-800 rounded-2xl p-6 shadow-2xl relative overflow-hidden"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: `absolute top-0 inset-x-0 h-1.5 ${dialogState.type === 'danger' ? 'bg-red-500' : 'bg-yellow-500'}`
+  }), /*#__PURE__*/React.createElement("h4", {
+    className: "text-base font-black text-slate-100 flex items-center gap-2 mb-3"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: `fa-solid ${dialogState.type === 'danger' ? 'fa-triangle-exclamation text-red-500' : 'fa-circle-info text-yellow-500'}`
+  }), dialogState.title), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-300 leading-relaxed mb-6 whitespace-pre-wrap"
+  }, dialogState.text), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-end gap-2.5"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setDialogState({
+      show: false
+    }),
+    className: "bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-2 px-4 rounded-lg font-bold transition-all border border-slate-700/60"
+  }, "\u30AD\u30E3\u30F3\u30BB\u30EB"), /*#__PURE__*/React.createElement("button", {
+    onClick: dialogState.onConfirm,
+    className: `text-white text-xs py-2 px-4 rounded-lg font-bold transition-all shadow-md ${dialogState.type === 'danger' ? 'bg-red-600 hover:bg-red-500' : 'bg-yellow-500 hover:bg-yellow-400 text-slate-950'}`
+  }, "\u78BA\u5B9F\u306B\u5B9F\u884C\u3059\u308B")))), /*#__PURE__*/React.createElement("div", {
+    className: `no-print transition-all duration-300 ease-in-out flex flex-col h-[100dvh] bg-[#0d1424] border-r border-slate-800/80 ${isMobile || isLandscape ? 'fixed inset-y-0 left-0 w-80 shadow-[10px_0_50px_rgba(0,0,0,0.85)] z-50' : isSidebarOpen ? 'w-96 min-w-[384px]' : 'w-0 min-w-0 border-r-0 overflow-hidden'} ${!isSidebarOpen ? '-translate-x-full' : 'translate-x-0'} ${fullPrintMode ? 'hidden' : ''}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "p-4 border-b border-slate-800/80 flex items-center justify-between gap-2 bg-[#0a0f1c] shrink-0"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2 flex-grow"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-gem text-yellow-500 text-base"
+  }), /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    value: projectName,
+    onChange: e => setProjectName(e.target.value),
+    className: "bg-transparent font-black text-sm text-slate-100 focus:outline-none border-b border-transparent focus:border-yellow-500/50 w-full px-1 py-0.5",
+    placeholder: "\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u540D"
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setIsSidebarOpen(false),
+    className: "text-slate-400 hover:text-red-400 p-2 rounded-lg hover:bg-slate-800/50 transition-colors no-drag shrink-0 text-xs font-bold flex items-center gap-1"
+  }, /*#__PURE__*/React.createElement("span", null, "\u9589\u3058\u308B"), /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-chevron-left text-[10px]"
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "flex-grow overflow-y-auto p-4 pb-48 space-y-4 no-scrollbar bg-[#0d1424]"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-slate-900/90 p-3.5 rounded-xl border border-slate-800/60"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between items-center text-[10px] mb-1.5"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-400 font-bold"
+  }, "\u6700\u4E2D\u5FC3\u5927\u76EE\u6A19\u30E9\u30F3\u30AF"), /*#__PURE__*/React.createElement("span", {
+    className: `font-bold px-2 py-0.5 rounded ${currentRank.bg} ${currentRank.color} text-[9px]`
+  }, currentRank.title)), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-full bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-700/50"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-gradient-to-r from-amber-500 via-yellow-400 to-cyan-400 h-full rounded-full transition-all duration-500",
+    style: {
+      width: `${cells?.[4]?.[4]?.level || 0}%`
+    }
+  })), /*#__PURE__*/React.createElement("span", {
+    className: "text-sm font-black text-yellow-400 min-w-[42px] text-right font-orbitron"
+  }, "Lv.", cells?.[4]?.[4]?.level || 0))), (isMobile || isLandscape) && /*#__PURE__*/React.createElement("div", {
+    className: "bg-slate-950 p-3 rounded-xl border border-slate-800/80 space-y-2.5 mt-1 text-[11px] no-drag"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between items-center text-slate-400 font-bold border-b border-slate-900 pb-1.5 mb-1.5"
+  }, /*#__PURE__*/React.createElement("span", null, "\uD83D\uDCF1 \u30E2\u30D0\u30A4\u30EB\u8A2D\u5B9A"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setIsSidebarOpen(false),
+    className: "text-red-400 hover:text-red-300 font-bold"
+  }, "\u9589\u3058\u308B")), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between items-center text-slate-300"
+  }, /*#__PURE__*/React.createElement("span", null, "\u30A4\u30F3\u30AF\u7BC0\u7D04\u5370\u5237\u30E2\u30FC\u30C9"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setPrintEconomy(!printEconomy),
+    className: `px-3 py-1 rounded font-bold border text-[10px] transition-all flex items-center gap-1 ${printEconomy ? 'bg-slate-200 text-slate-950 border-white' : 'bg-slate-900 text-slate-300 border-slate-800'}`
+  }, /*#__PURE__*/React.createElement("i", {
+    className: `fa-solid ${printEconomy ? 'fa-toggle-on text-emerald-600' : 'fa-toggle-off'}`
+  }), /*#__PURE__*/React.createElement("span", null, printEconomy ? "有効" : "無効"))), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 gap-2 mt-1"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      fitToScreen();
+      setIsSidebarOpen(false);
+    },
+    className: "bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 py-1.5 rounded text-[10px] font-bold transition-all flex items-center justify-center gap-1.5"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-expand text-cyan-400"
+  }), /*#__PURE__*/React.createElement("span", null, "\u753B\u9762\u306B\u30D5\u30A3\u30C3\u30C8")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setFullPrintMode(true),
+    className: "bg-cyan-600 hover:bg-cyan-500 text-white py-1.5 rounded text-[10px] font-bold transition-all flex items-center justify-center gap-1.5 shadow"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-print"
+  }), /*#__PURE__*/React.createElement("span", null, "\u5370\u5237\u30D7\u30EC\u30D3\u30E5\u30FC"))), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between text-slate-300 border-t border-slate-900 pt-2.5"
+  }, /*#__PURE__*/React.createElement("span", null, "\u624B\u52D5\u30BA\u30FC\u30E0\u8ABF\u7BC0"), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-1.5 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-850"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => changeScaleStep(-0.05),
+    className: "w-5.5 h-5.5 rounded bg-slate-800 flex items-center justify-center font-bold text-xs"
+  }, "-"), /*#__PURE__*/React.createElement("span", {
+    className: "font-mono text-[10px] min-w-[32px] text-center"
+  }, Math.round(scale * 100), "%"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => changeScaleStep(0.05),
+    className: "w-5.5 h-5.5 rounded bg-slate-800 flex items-center justify-center font-bold text-xs"
+  }, "+")))), /*#__PURE__*/React.createElement("div", {
+    className: "bg-slate-900/50 p-4 rounded-xl border border-slate-800/80"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between items-start mb-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-2/3"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-[9px] text-slate-400 font-bold tracking-wider uppercase bg-slate-850 px-2 py-0.5 rounded"
+  }, "BLOCK ", selectedCell.b + 1, " - CELL ", selectedCell.c + 1), /*#__PURE__*/React.createElement("h3", {
+    className: "text-xs font-black text-slate-200 mt-2 flex items-center gap-2 truncate"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: `fa-solid ${selectedCell.b === 4 ? 'fa-crown text-yellow-500' : 'fa-compass text-cyan-400'}`
+  }), blockNames[selectedCell.b] || "")), /*#__PURE__*/React.createElement("div", {
+    className: "text-right"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-[9px] text-slate-400 block font-bold"
+  }, "\u76EE\u6A19\u5F37\u5EA6"), /*#__PURE__*/React.createElement("span", {
+    className: "text-xl font-black text-yellow-400 font-orbitron"
+  }, "Lv.", currentCellData.level))), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-1.5"
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "text-[10px] text-slate-400 font-bold block"
+  }, "\u76EE\u6A19\u30C6\u30AD\u30B9\u30C8 (Enter\u6539\u884C\u53CD\u6620)"), /*#__PURE__*/React.createElement("textarea", {
+    value: currentCellData.text,
+    onChange: e => updateCellData(selectedCell.b, selectedCell.c, {
+      text: e.target.value
+    }),
+    rows: 3,
+    className: "w-full bg-slate-950 border border-slate-800/80 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-yellow-500 font-medium whitespace-pre-wrap leading-relaxed",
+    placeholder: "\u3053\u3053\u306B\u30DE\u30B9\u306E\u884C\u52D5\u8A08\u753B\u3084\u76EE\u6A19\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044..."
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mt-3.5 pt-3.5 border-t border-slate-800/80 space-y-2.5"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between items-center"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] text-slate-400 font-bold"
+  }, "\u81EA\u5F8B\u30EC\u30D9\u30EB\u6210\u9577", (selectedCell.b === 4 || selectedCell.c === 4) && /*#__PURE__*/React.createElement("span", {
+    className: "text-red-400 ml-1"
+  }, "(\u81EA\u52D5\u30ED\u30FC\u30EB\u30A2\u30C3\u30D7\u5BFE\u8C61)"))), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-1.5"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => adjustLevel(selectedCell.b, selectedCell.c, -10),
+    disabled: selectedCell.b === 4 || selectedCell.c === 4,
+    className: "bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-[10px] px-2 py-1.5 rounded text-slate-300 font-bold transition-all"
+  }, "-10"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => adjustLevel(selectedCell.b, selectedCell.c, -1),
+    disabled: selectedCell.b === 4 || selectedCell.c === 4,
+    className: "bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-[10px] px-2 py-1.5 rounded text-slate-300 font-bold transition-all"
+  }, "-1"), /*#__PURE__*/React.createElement("input", {
+    type: "range",
+    min: "0",
+    max: "100",
+    value: currentCellData.level,
+    onChange: e => updateCellData(selectedCell.b, selectedCell.c, {
+      level: parseInt(e.target.value)
+    }),
+    disabled: selectedCell.b === 4 || selectedCell.c === 4,
+    className: "w-full accent-yellow-500 h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer disabled:opacity-30"
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: () => adjustLevel(selectedCell.b, selectedCell.c, 1),
+    disabled: selectedCell.b === 4 || selectedCell.c === 4,
+    className: "bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-[10px] px-2 py-1.5 rounded text-slate-300 font-bold transition-all"
+  }, "+1"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => adjustLevel(selectedCell.b, selectedCell.c, 10),
+    disabled: selectedCell.b === 4 || selectedCell.c === 4,
+    className: "bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-[10px] px-2 py-1.5 rounded text-slate-300 font-bold transition-all"
+  }, "+10")))), /*#__PURE__*/React.createElement("div", {
+    className: "bg-slate-900/50 p-4 rounded-xl border border-slate-800/80 space-y-2"
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "text-[10px] text-slate-400 font-bold block flex items-center gap-1.5"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-pen-nib text-cyan-400"
+  }), "\u884C\u52D5\u6307\u91DD\u30FB\u30B3\u30FC\u30C1\u30F3\u30B0\u30ED\u30B0"), /*#__PURE__*/React.createElement("textarea", {
+    value: currentCellData.memo || "",
+    onChange: e => updateCellData(selectedCell.b, selectedCell.c, {
+      memo: e.target.value
+    }),
+    rows: 2,
+    className: "w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-300 focus:outline-none focus:border-cyan-500 font-medium leading-relaxed",
+    placeholder: "\u5177\u4F53\u7684\u306A\u624B\u6CD5\u3084\u3001\u65E5\u3005\u306E\u6C17\u4ED8\u304D\u3001\u30C6\u30CB\u30B9\u3084\u4ED5\u4E8B\u3078\u306E\u30A2\u30D7\u30ED\u30FC\u30C1\u306A\u3069..."
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "bg-slate-900/50 p-4 rounded-xl border border-slate-800/80 space-y-3"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] text-slate-400 font-bold block flex items-center gap-1.5 border-b border-slate-800/60 pb-1.5"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-chart-pie text-emerald-400"
+  }), "\u30D0\u30E9\u30F3\u30B9\u30DB\u30A4\u30FC\u30EB\u30FB\u81EA\u5F8B\u5EA6\u5206\u6790"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2 text-[10px]"
+  }, analyzedStats.sectors.map((sec, idx) => /*#__PURE__*/React.createElement("div", {
+    key: idx,
+    className: "space-y-0.5"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between items-center text-slate-300"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "truncate font-semibold max-w-[170px]"
+  }, sec.name), /*#__PURE__*/React.createElement("span", {
+    className: "font-bold text-yellow-400/90 font-orbitron"
+  }, sec.avg, "%")), /*#__PURE__*/React.createElement("div", {
+    className: "w-full bg-slate-950 h-1 rounded-full overflow-hidden"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "h-full rounded-full bg-gradient-to-r from-emerald-500 to-cyan-400 transition-all duration-300",
+    style: {
+      width: `${sec.avg}%`
+    }
+  }))))), /*#__PURE__*/React.createElement("div", {
+    className: "mt-3 bg-slate-950/60 p-3 rounded-lg border border-slate-800/40 space-y-1.5"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[9px] text-slate-400 flex items-center gap-1 font-bold"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-wand-magic-sparkles text-cyan-400"
+  }), "\u8ABF\u548C\u30A2\u30C9\u30D0\u30A4\u30B9"), /*#__PURE__*/React.createElement("p", {
+    className: "text-[10px] text-slate-300 leading-relaxed font-medium"
+  }, "\u73FE\u5728\u3001\u6700\u3082\u63A8\u9032\u529B\u304C\u9AD8\u307E\u3063\u3066\u3044\u308B\u306E\u306F ", /*#__PURE__*/React.createElement("strong", {
+    className: "text-cyan-400"
+  }, "\u300C", analyzedStats.strongest?.name, "\u300D"), " \u3067\u3059\u3002\u3055\u3089\u306B\u4EBA\u751F\u5168\u4F53\u306E\u5171\u5275\u3068\u8ABF\u548C\u3092\u5E83\u3052\u308B\u305F\u3081\u306B\u3001\u6B21\u306F ", /*#__PURE__*/React.createElement("strong", {
+    className: "text-yellow-400"
+  }, "\u300C", analyzedStats.focusing?.name, "\u300D"), " \u306E\u9818\u57DF\u306B\u610F\u8B58\u3092\u5411\u3051\u3001\u5C0F\u3055\u306A\u30A2\u30AF\u30B7\u30E7\u30F3\u30921\u3064\u80B2\u3066\u3066\u3044\u304D\u307E\u3057\u3087\u3046\u3002"))), /*#__PURE__*/React.createElement("div", {
+    className: "bg-slate-950/50 p-3.5 rounded-xl border border-slate-850 space-y-2.5"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[9px] text-slate-400 font-bold tracking-widest flex items-center gap-1"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-database text-yellow-500"
+  }), "\u30C7\u30FC\u30BF\u7BA1\u7406\u30FB\u540C\u671F"), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 gap-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: exportData,
+    className: "bg-slate-900 hover:bg-slate-850 border border-slate-850 text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all border border-slate-800"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-file-export"
+  }), "\u30D0\u30C3\u30AF\u30A2\u30C3\u30D7"), /*#__PURE__*/React.createElement("label", {
+    className: "bg-slate-900 hover:bg-slate-850 border border-slate-850 text-slate-400 hover:text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all border border-slate-800 cursor-pointer text-center"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-file-import"
+  }), "\u5FA9\u5143\u30ED\u30FC\u30C9", /*#__PURE__*/React.createElement("input", {
+    type: "file",
+    accept: ".json",
+    onChange: importData,
+    className: "hidden"
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 gap-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: handleClearAll,
+    className: "bg-slate-900 hover:bg-slate-850 border border-slate-850 text-slate-400 hover:text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-broom"
+  }), "\uD83E\uDDF9 \u30BC\u30ED\u304B\u3089\u767D\u7D19"), /*#__PURE__*/React.createElement("button", {
+    onClick: handleFactoryReset,
+    className: "bg-red-950/40 hover:bg-red-900/50 border border-red-900/40 text-red-300 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-rotate-left"
+  }), "\u30C7\u30E2\u5FA9\u5143"))), /*#__PURE__*/React.createElement("div", {
+    className: "h-48 shrink-0 select-none pointer-events-none no-print"
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "flex-grow flex flex-col h-full overflow-hidden relative"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: `p-4 bg-[#0a0f1d] border-b border-slate-800 flex flex-wrap justify-between items-center gap-3 z-10 no-print ${fullPrintMode || isMobile || isLandscape ? 'hidden' : ''}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3"
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "text-sm font-black text-yellow-400 flex items-center gap-1.5 tracking-wider uppercase font-orbitron"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "relative flex h-2 w-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "relative inline-flex rounded-full h-2 w-2 bg-yellow-500"
+  })), "MANDALA SPHERES"), /*#__PURE__*/React.createElement("div", {
+    className: "h-4 w-[1px] bg-slate-700 hidden sm:block"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setZoomBlock(null),
+    className: `px-2 py-0.5 text-[10px] font-bold rounded transition-all ${zoomBlock === null ? 'bg-yellow-500 text-slate-950' : 'text-slate-400 hover:text-slate-200'}`
+  }, "9x9 \u5168\u4F53"), /*#__PURE__*/React.createElement("select", {
+    value: zoomBlock !== null ? zoomBlock : "",
+    onChange: e => setZoomBlock(e.target.value === "" ? null : parseInt(e.target.value)),
+    className: `text-[10px] font-bold px-1.5 py-0.5 rounded focus:outline-none cursor-pointer bg-slate-900 border border-slate-800 ${zoomBlock !== null ? 'text-yellow-400' : 'text-slate-400'}`
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "-- \u9818\u57DF\u62E1\u5927 --"), Object.keys(DEFAULT_BLOCK_NAMES).map(key => /*#__PURE__*/React.createElement("option", {
+    key: key,
+    value: key
+  }, blockNames[key] || `領域 ${parseInt(key) + 1}`))))), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setPrintEconomy(!printEconomy),
+    className: `p-2 rounded-lg text-xs font-bold border transition-all flex items-center gap-1.5 ${printEconomy ? 'bg-slate-200 text-slate-950 border-white' : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-slate-600'}`,
+    title: "\u80CC\u666F\u3092\u771F\u3063\u767D\u306B\u3057\u3066\u30A4\u30F3\u30AF\u3092\u9577\u6301\u3061\u3055\u305B\u307E\u3059"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: `fa-solid ${printEconomy ? 'fa-toggle-on text-emerald-600' : 'fa-toggle-off'}`
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "hidden sm:inline"
+  }, "\u30A4\u30F3\u30AF\u7BC0\u7D04")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setFullPrintMode(true),
+    className: "bg-cyan-600 hover:bg-cyan-500 text-white text-xs py-2 px-3 rounded-lg font-bold flex items-center gap-1.5 transition-all shadow-md"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-print"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "hidden sm:inline"
+  }, "\u5168\u753B\u9762\u5370\u5237")), /*#__PURE__*/React.createElement("button", {
+    onClick: fitToScreen,
+    className: "bg-slate-900 hover:bg-slate-850 border border-slate-700 text-slate-300 p-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-expand"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "hidden md:inline"
+  }, "\u753B\u9762\u306B\u30D5\u30A3\u30C3\u30C8")), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-1.5 bg-slate-950 px-2 py-1.5 rounded-lg border border-slate-800 no-drag"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => changeScaleStep(-0.1),
+    className: "w-5.5 h-5.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-all"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-minus text-[8px]"
+  })), /*#__PURE__*/React.createElement("input", {
+    type: "range",
+    min: "0.12",
+    max: "2.0",
+    step: "0.05",
+    value: scale,
+    onChange: e => setScale(parseFloat(e.target.value)),
+    className: "w-14 accent-cyan-500 h-1 rounded bg-slate-800"
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: () => changeScaleStep(0.1),
+    className: "w-5.5 h-5.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-all"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-plus text-[8px]"
+  })), /*#__PURE__*/React.createElement("span", {
+    className: "text-[9px] text-slate-300 font-mono w-8 text-right"
+  }, Math.round(scale * 100), "%")))), !isSidebarOpen && /*#__PURE__*/React.createElement("button", {
+    onClick: e => {
+      e.stopPropagation();
+      setIsSidebarOpen(true);
+    },
+    className: "fixed bottom-6 left-6 z-40 bg-[#0d1424]/95 hover:bg-slate-850 text-white border-2 border-emerald-500/80 px-4 py-3.5 rounded-full shadow-2xl backdrop-blur flex items-center gap-2 active:scale-95 transition-all font-bold text-sm select-none no-print no-drag animate-fade-in"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-bars text-emerald-400"
+  }), /*#__PURE__*/React.createElement("span", null, "\uD83D\uDCCA \u30E1\u30CB\u30E5\u30FC")), (isMobile || isLandscape) && /*#__PURE__*/React.createElement("button", {
+    onClick: e => {
+      e.stopPropagation();
+      fitToScreen();
+    },
+    className: "fixed bottom-6 right-6 z-40 bg-[#0d1424]/95 hover:bg-slate-850 text-white border border-slate-700/80 p-3.5 rounded-full shadow-2xl backdrop-blur flex items-center justify-center active:scale-95 transition-all select-none no-print no-drag animate-fade-in",
+    title: "\u753B\u9762\u306B\u30D5\u30A3\u30C3\u30C8"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-expand text-cyan-400 text-base"
+  })), fullPrintMode && /*#__PURE__*/React.createElement("div", {
+    className: "absolute top-4 left-4 right-4 flex justify-between items-center bg-slate-900/95 border border-slate-800 rounded-xl p-3.5 z-50 no-print"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-xs font-bold text-yellow-400 flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-crown"
+  }), projectName, " \u5370\u5237\u30D7\u30EC\u30D3\u30E5\u30FC")), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => window.print(),
+    className: "bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold text-[10px] py-1.5 px-3.5 rounded"
+  }, "\u5370\u5237\u8D77\u52D5"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setFullPrintMode(false),
+    className: "bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-[10px] py-1.5 px-3.5 rounded"
+  }, "\u623B\u308B"))), /*#__PURE__*/React.createElement("div", {
+    ref: boardContainerRef,
+    onMouseDown: onMouseDown,
+    onMouseMove: onMouseMove,
+    onMouseUp: handleDragEnd,
+    onMouseLeave: handleDragEnd,
+    onClick: () => {
+      if ((isMobile || isLandscape) && isSidebarOpen) setIsSidebarOpen(false);
+    },
+    className: "flex-grow overflow-hidden relative bg-[#06080e] drag-canvas"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "absolute transition-transform duration-100 origin-top-left",
+    style: {
+      transform: `translate(${scrollOffset.x}px, ${scrollOffset.y}px) scale(${scale})`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: `print-area mandala-board-wrapper bg-[#0f1525]/60 rounded-3xl p-6 flex flex-wrap gap-5 justify-between relative shadow-[0_0_60px_rgba(0,0,0,0.6)] border border-slate-800/80 ${printEconomy ? 'bg-white shadow-none border-0' : ''}`
+  }, Array.from({
+    length: 9
+  }).map((_, bIndex) => {
+    const themeHue = blockHues[bIndex] || 0;
+    const blockAvgLv = bIndex === 4 ? cells?.[4]?.[4]?.level || 0 : cells?.[bIndex]?.[4]?.level || 0;
+    const isFocusTarget = zoomBlock === null || zoomBlock === bIndex;
+    if (!isFocusTarget) return null;
+    const isPaletteOpen = activePaletteBlock === bIndex;
+    const isEditingBlockName = editingBlockNameIdx === bIndex;
+    return /*#__PURE__*/React.createElement("div", {
+      key: bIndex,
+      className: `mandala-block-wrapper rounded-2xl p-2.5 flex flex-col justify-between transition-all duration-300 border relative ${printEconomy ? 'bg-white border-2 border-black shadow-none' : 'bg-[#121927]/95 border-slate-800/80 shadow-[0_4px_25px_rgba(0,0,0,0.45)]'} ${zoomBlock !== null ? 'scale-[1.8] origin-center z-40 mx-auto my-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 shadow-[0_0_50px_rgba(0,0,0,0.85)]' : ''}`
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-[11px] font-black px-1 pb-1.5 border-b border-slate-800/40 flex items-center justify-between relative z-20"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center gap-1.5 max-w-[280px]"
+    }, isEditingBlockName ? /*#__PURE__*/React.createElement("input", {
+      type: "text",
+      value: tempBlockName,
+      onChange: e => setTempBlockName(e.target.value),
+      onBlur: () => saveBlockNameEdit(bIndex),
+      onKeyDown: e => e.key === 'Enter' && saveBlockNameEdit(bIndex),
+      autoFocus: true,
+      className: "bg-slate-950 text-white font-black text-[10px] px-1 py-0.5 rounded border border-yellow-500 focus:outline-none no-drag"
+    }) : /*#__PURE__*/React.createElement("span", {
+      onDoubleClick: e => startBlockNameEdit(bIndex, e),
+      className: `flex items-center gap-1 cursor-pointer hover:text-yellow-400 select-none ${printEconomy ? 'text-black' : 'text-slate-200'}`,
+      title: "\u30C0\u30D6\u30EB\u30AF\u30EA\u30C3\u30AF\u3067\u30BF\u30A4\u30C8\u30EB\u3092\u5909\u66F4\u3067\u304D\u307E\u3059"
+    }, /*#__PURE__*/React.createElement("i", {
+      className: "fa-solid fa-pen-to-square text-[9px] text-slate-500 mr-0.5"
+    }), blockNames[bIndex] || `領域 ${bIndex + 1}`), !printEconomy && /*#__PURE__*/React.createElement("button", {
+      onClick: e => {
+        e.stopPropagation();
+        setActivePaletteBlock(isPaletteOpen ? null : bIndex);
+      },
+      className: "w-3.5 h-3.5 rounded-full border border-slate-600/80 hover:scale-110 active:scale-95 transition-all shadow no-drag",
+      style: {
+        background: `hsl(${themeHue}, 80%, 40%)`
+      }
+    })), /*#__PURE__*/React.createElement("span", {
+      className: `text-[9px] px-1.5 py-0.5 rounded ${printEconomy ? 'text-black font-bold' : 'text-yellow-400 bg-yellow-500/10 font-orbitron'}`
+    }, "\u5E73\u5747Lv.", blockAvgLv), isPaletteOpen && /*#__PURE__*/React.createElement("div", {
+      className: "absolute top-7 left-1 bg-slate-900 border-2 border-slate-800 rounded-xl p-3 shadow-2xl z-50 w-72 grid grid-cols-5 gap-1.5 animate-fade-in no-drag"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "col-span-5 flex justify-between items-center text-[9px] text-slate-400 font-bold mb-1 pb-1 border-b border-slate-800"
+    }, /*#__PURE__*/React.createElement("span", null, "\u30D9\u30FC\u30B9\u30C0\u30FC\u30AF\u30AB\u30E9\u30FC(20\u8272)"), /*#__PURE__*/React.createElement("button", {
+      onClick: () => setActivePaletteBlock(null),
+      className: "text-red-400 hover:text-red-300"
+    }, "\u9589\u3058\u308B")), PRESET_HUES.map((preset, pIdx) => /*#__PURE__*/React.createElement("button", {
+      key: pIdx,
+      onClick: () => {
+        setBlockHues(prev => ({
+          ...prev,
+          [bIndex]: preset.hue
+        }));
+        setActivePaletteBlock(null);
+        showToast(`${blockNames[bIndex] || `領域 ${bIndex + 1}`}の色を「${preset.name}」に変更しました`);
+      },
+      className: "h-8 rounded-lg border border-slate-700/60 transition-all hover:scale-105 flex flex-col items-center justify-center relative group",
+      style: {
+        background: `hsl(${preset.hue}, 70%, 25%)`
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "absolute bottom-full left-1/2 -translate-x-1/2 bg-slate-950 text-white text-[7px] py-0.5 px-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50"
+    }, preset.name))))), /*#__PURE__*/React.createElement("div", {
+      className: "grid grid-cols-3 gap-1.5 mt-1.5 relative z-10"
+    }, Array.from({
+      length: 9
+    }).map((_, cIndex) => {
+      const cellData = cells?.[bIndex]?.[cIndex] || {
+        text: "",
+        level: 0,
+        memo: ""
+      };
+      const isSelected = selectedCell.b === bIndex && selectedCell.c === cIndex;
+      const styleData = getCellColorAndStyle(bIndex, cIndex, cellData.level);
+
+      // 各種セルの中心判定
+      const isBlockCenter = cIndex === 4;
+      const isAbsoluteCenter = bIndex === 4 && cIndex === 4;
+
+      // 【今回の最重要追加判定】「人生の大目標」ブロック（ブロック4：曼荼羅全体のど真ん中ブロック）であるかどうか
+      const isCentralBlock = bIndex === 4;
+      return /*#__PURE__*/React.createElement("div", {
+        key: cIndex,
+        onClick: e => {
+          e.stopPropagation();
+          if (isMoved.current) return;
+          if (isSelected) {
+            startInlineEdit(bIndex, cIndex, e);
+          } else {
+            setSelectedCell({
+              b: bIndex,
+              c: cIndex
+            });
+          }
+        },
+        onDoubleClick: e => {
+          if (isMoved.current) return;
+          startInlineEdit(bIndex, cIndex, e);
+        },
+        className: `mandala-cell rounded-xl p-1.5 flex flex-col justify-between relative cursor-pointer overflow-hidden ${styleData.className} ${isSelected ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-900 scale-[1.02] z-10' : 'hover:scale-[1.01]'}`,
+        style: styleData.style
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "flex items-center justify-between text-[8px] opacity-70 tracking-tight font-orbitron font-bold select-none h-3"
+      }, /*#__PURE__*/React.createElement("span", null, bIndex + 1, "-", cIndex + 1), /*#__PURE__*/React.createElement("span", null, bIndex === 4 && cIndex === 4 ? "⭐ 大目標" : cIndex === 4 ? "🔷 中目標" : "◈ ACTION")), /*#__PURE__*/React.createElement("div", {
+        className: "flex-grow flex items-center justify-center my-0.5 max-h-[52px] overflow-hidden"
+      }, /*#__PURE__*/React.createElement("p", {
+        className: `w-full text-center text-[10.5px] leading-tight font-bold tracking-normal whitespace-pre-wrap break-all line-clamp-3 select-none ${printEconomy ? 'text-black' : cellData.level > 90 ? 'text-slate-955' : 'text-slate-100'}`
+      }, cellData.text)), /*#__PURE__*/React.createElement("div", {
+        className: "flex items-center justify-between mt-0.5 h-5 select-none"
+      }, isSelected && !isBlockCenter && !isAbsoluteCenter && !isCentralBlock ? /*#__PURE__*/React.createElement("div", {
+        className: "flex items-center gap-1 bg-[#0d1424]/90 rounded-full px-1.5 py-0.5 border border-cyan-500/30 no-drag shadow-lg relative z-30"
+      }, /*#__PURE__*/React.createElement("button", {
+        onMouseDown: e => {
+          e.stopPropagation();
+          e.preventDefault();
+        },
+        onDoubleClick: e => {
+          e.stopPropagation();
+          e.preventDefault();
+        },
+        onTouchStart: e => {
+          e.stopPropagation();
+          e.preventDefault();
+          adjustLevel(bIndex, cIndex, -1);
+        },
+        onClick: e => {
+          e.stopPropagation();
+          e.preventDefault();
+          adjustLevel(bIndex, cIndex, -1);
+        },
+        className: "w-4 h-4 rounded-full bg-slate-800 hover:bg-red-600 flex items-center justify-center text-[10px] text-white font-black transition-all active:scale-75",
+        title: "\u30EC\u30D9\u30EB\u30921\u4E0B\u3052\u308B"
+      }, "-"), /*#__PURE__*/React.createElement("span", {
+        className: "text-[10px] font-black px-1 font-orbitron text-yellow-400 select-none"
+      }, "Lv.", cellData.level), /*#__PURE__*/React.createElement("button", {
+        onMouseDown: e => {
+          e.stopPropagation();
+          e.preventDefault();
+        },
+        onDoubleClick: e => {
+          e.stopPropagation();
+          e.preventDefault();
+        },
+        onTouchStart: e => {
+          e.stopPropagation();
+          e.preventDefault();
+          adjustLevel(bIndex, cIndex, 1);
+        },
+        onClick: e => {
+          e.stopPropagation();
+          e.preventDefault();
+          adjustLevel(bIndex, cIndex, 1);
+        },
+        className: "w-4 h-4 rounded-full bg-slate-800 hover:bg-emerald-600 flex items-center justify-center text-[10px] text-white font-black transition-all active:scale-75",
+        title: "\u30EC\u30D9\u30EB\u30921\u4E0A\u3052\u308B"
+      }, "+")) : /*#__PURE__*/React.createElement("span", {
+        className: `text-[10px] font-black font-orbitron tracking-tight ${printEconomy ? 'text-black' : cellData.level > 90 ? 'text-slate-955' : 'text-yellow-400'}`
+      }, "Lv.", cellData.level), /*#__PURE__*/React.createElement("div", {
+        className: "relative w-5 h-5 flex items-center justify-center"
+      }, /*#__PURE__*/React.createElement("svg", {
+        className: "w-5 h-5 transform -rotate-90",
+        viewBox: "0 0 24 24"
+      }, /*#__PURE__*/React.createElement("circle", {
+        cx: "12",
+        cy: "12",
+        r: "9",
+        fill: "transparent",
+        stroke: printEconomy ? "#cbd5e1" : "rgba(255, 255, 255, 0.15)",
+        strokeWidth: "2.5",
+        className: "no-print"
+      }), /*#__PURE__*/React.createElement("circle", {
+        cx: "12",
+        cy: "12",
+        r: "9",
+        fill: "transparent",
+        stroke: printEconomy ? "#000" : cellData.level >= 100 ? "#eab308" : cellData.level > 90 ? "#22d3ee" : "#d4af37",
+        strokeWidth: "2.5",
+        strokeDasharray: `${2 * Math.PI * 9}`,
+        strokeDashoffset: `${2 * Math.PI * 9 * (1 - cellData.level / 100)}`,
+        strokeLinecap: "round",
+        className: "transition-all duration-300"
+      })), cellData.level === 100 && /*#__PURE__*/React.createElement("div", {
+        className: "absolute -top-1 -right-1 text-[8px] text-yellow-300 drop-shadow animate-bounce"
+      }, /*#__PURE__*/React.createElement("i", {
+        className: "fa-solid fa-crown"
+      })))));
+    })));
+  })))), editingCell && /*#__PURE__*/React.createElement("div", {
+    className: "fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/90 backdrop-blur-sm overflow-y-auto no-drag no-print"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-full max-w-3xl bg-slate-900/95 border-2 border-cyan-500/30 rounded-2xl p-4 sm:p-5 shadow-[0_0_50px_rgba(6,182,212,0.35)] relative flex flex-col gap-3 my-auto max-h-[94vh] overflow-y-auto no-scrollbar"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-cyan-500 via-emerald-400 to-yellow-500 shrink-0"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-2 shrink-0"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-wrap items-center gap-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] text-cyan-400 font-black tracking-widest uppercase bg-cyan-950/80 px-2.5 py-1 rounded-md border border-cyan-500/20 font-orbitron"
+  }, "BLOCK ", editingCell.b + 1, " - CELL ", editingCell.c + 1), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-1.5 bg-slate-950 px-2 py-0.5 rounded-lg border border-slate-800"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-pen-to-square text-[10px] text-cyan-500"
+  }), /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    value: blockNames[editingCell.b] || "",
+    onChange: e => handleBlockNameChangeInModal(e.target.value),
+    className: "bg-transparent font-black text-xs text-slate-100 focus:outline-none focus:text-yellow-400 w-44 sm:w-56",
+    placeholder: "\u9818\u57DF\u30BF\u30A4\u30C8\u30EB\u3092\u5909\u66F4\uFF08\u30DB\u30A4\u30FC\u30EB\u306B\u9023\u52D5\uFF09...",
+    title: "\u3053\u306E\u30D6\u30ED\u30C3\u30AF\u9818\u57DF\u306E\u30C6\u30FC\u30DE\u540D\uFF08\u30D0\u30E9\u30F3\u30B9\u30DB\u30A4\u30FC\u30EB\u7B49\u306E\u9805\u76EE\uFF09\u3092\u3053\u3053\u304B\u3089\u76F4\u63A5\u66F8\u304D\u63DB\u3048\u3089\u308C\u307E\u3059"
+  }))), /*#__PURE__*/React.createElement("span", {
+    className: "text-[11px] font-black text-yellow-400 font-orbitron sm:text-right"
+  }, "\u73FE\u5728\u30DE\u30B9\u306E\u81EA\u5F8B\u5EA6: Lv.", cells?.[editingCell.b]?.[editingCell.c]?.level || 0)), /*#__PURE__*/React.createElement("div", {
+    className: "bg-slate-950/80 rounded-xl p-2.5 border border-slate-850 shrink-0"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-[9px] text-slate-400 font-bold mb-1.5 flex items-center gap-1.5 select-none"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-map-location-dot text-emerald-400"
+  }), /*#__PURE__*/React.createElement("span", null, "\u7DE8\u96C6\u3059\u308B\u30DE\u30B9\u306E\u5207\u308A\u66FF\u3048\uFF08\u9078\u629E\u4E2D\uFF1A\u6C34\u8272\uFF09:")), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-3 gap-1.5"
+  }, Array.from({
+    length: 9
+  }).map((_, cIdx) => {
+    const targetCell = cells?.[editingCell.b]?.[cIdx] || {
+      text: "",
+      level: 0
+    };
+    const isThisEditing = editingCell.c === cIdx;
+    return /*#__PURE__*/React.createElement("div", {
+      key: cIdx,
+      onClick: () => {
+        updateCellData(editingCell.b, editingCell.c, {
+          text: inlineText
+        });
+        setEditingCell({
+          b: editingCell.b,
+          c: cIdx
+        });
+        setInlineText(cells?.[editingCell.b]?.[cIdx]?.text || "");
+      },
+      className: `p-1.5 rounded-lg border text-left cursor-pointer transition-all relative overflow-hidden flex flex-col justify-between h-[52px] sm:h-[60px] hover:border-cyan-400/50 hover:bg-slate-900 ${isThisEditing ? 'bg-cyan-950/40 border-cyan-400/80 ring-1 ring-cyan-400/50 shadow-[0_0_12px_rgba(6,182,212,0.2)]' : 'bg-slate-900/60 border-slate-800'}`
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex justify-between text-[8px] opacity-60 font-bold select-none"
+    }, /*#__PURE__*/React.createElement("span", null, editingCell.b + 1, "-", cIdx + 1), /*#__PURE__*/React.createElement("span", {
+      className: "text-yellow-400"
+    }, "Lv.", targetCell.level)), /*#__PURE__*/React.createElement("p", {
+      className: "text-[9px] sm:text-[9.5px] leading-tight font-medium text-slate-300 line-clamp-2 break-all overflow-hidden mt-0.5"
+    }, isThisEditing ? inlineText || "(未入力)" : targetCell.text || "(未入力)"));
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-1 grow"
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "text-[10px] text-slate-400 font-bold block select-none"
+  }, "\u76EE\u6A19\u30C6\u30AD\u30B9\u30C8\u7DE8\u96C6"), /*#__PURE__*/React.createElement("textarea", {
+    value: inlineText,
+    onChange: e => setInlineText(e.target.value),
+    rows: isLandscape ? 2 : 3,
+    className: "w-full text-base bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-400 font-bold whitespace-pre-wrap leading-relaxed shadow-inner",
+    placeholder: "\u76EE\u6A19\u3084\u5177\u4F53\u7684\u306A\u8A08\u753B\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044...",
+    autoFocus: true
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between items-center pt-2.5 border-t border-slate-800/80 shrink-0"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-[9px] text-slate-500 font-bold flex items-center gap-1 select-none"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-circle-info"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "hidden sm:inline"
+  }, "\u30DF\u30CB\u30DE\u30C3\u30D7\u304B\u3089\u5168\u30DE\u30B9\u3092\u305D\u306E\u5834\u3067\u30B5\u30AF\u30B5\u30AF\u7DE8\u96C6\u3067\u304D\u307E\u3059\u3002"), /*#__PURE__*/React.createElement("span", {
+    className: "sm:hidden"
+  }, "\u30DF\u30CB\u30DE\u30C3\u30D7\u3067\u30DE\u30B9\u5207\u308A\u66FF\u3048\u53EF\u80FD\u3002")), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2 shrink-0"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: cancelInlineEdit,
+    className: "bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-2 px-3.5 rounded-lg font-black transition-all border border-slate-700/60 active:scale-95"
+  }, "\u30AD\u30E3\u30F3\u30BB\u30EB"), /*#__PURE__*/React.createElement("button", {
+    onClick: saveInlineEdit,
+    className: "bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-white text-xs py-2 px-4.5 rounded-lg font-black transition-all shadow-lg active:scale-95"
+  }, "\u6C7A\u5B9A \uFF06 \u4FDD\u5B58")))))));
+}
+ReactDOM.createRoot(document.getElementById('root')).render( /*#__PURE__*/React.createElement(App, null));
