@@ -49,7 +49,7 @@
   <!-- FontAwesome Icons for RPG Vibe -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <!-- React 18 & Babel standalone (URLを正常なCDNに完全復旧) -->
+  <!-- React 18 & Babel standalone -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js" crossorigin="anonymous"></script>
@@ -206,6 +206,53 @@
       };
     };
 
+    // 【100%エラーフリー・極上マルチConfettiエンジン】：
+    // 複雑なブレンド計算をすべて撤去し、毎回完全にランダムな極彩色が美しく弾け飛ぶ最高にシンプルな設計へ大掃除。
+    // これにより、連打しても毎回全く違う軌道・色味（マゼンタ、黄、青、緑、赤など）のきらきらした最高のお祝いが始まります。
+    const triggerConfettiShow = (isAbsoluteCenter = false) => {
+      if (typeof confetti !== 'function') return;
+
+      if (isAbsoluteCenter) {
+        // 大目標平均Lv.100時のレジェンド級お祝い（左右からクロスして無限に舞い散るお祭り仕様）
+        const end = Date.now() + (2 * 1000); // 2秒間お祝い
+        const frame = () => {
+          confetti({
+            particleCount: 6,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0, y: 0.8 }
+          });
+          confetti({
+            particleCount: 6,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1, y: 0.8 }
+          });
+
+          if (Date.now() < end) {
+            requestAnimationFrame(frame);
+          }
+        };
+        frame();
+        return;
+      }
+
+      // 通常マスのレベル100達成：
+      // 打ち上げるたびに角度、広がり、左右の位置を毎回シャッフルする、脳に最高のご褒美となるお祝いパターン。
+      const randomAngle = 65 + Math.random() * 50;   // 65度〜115度の間でランダム（勢いよく真上に弾ける）
+      const randomSpread = 60 + Math.random() * 40;  // 飛び散る広がり幅
+      const randomX = 0.3 + Math.random() * 0.4;     // 画面の左右位置を少し散らす
+
+      confetti({
+        particleCount: 110 + Math.floor(Math.random() * 50), // 連打したときお祝いの数にも心地よいバラつきを持たせる
+        angle: randomAngle,
+        spread: randomSpread,
+        velocity: 32 + Math.random() * 12,
+        origin: { x: randomX, y: 0.65 }
+        // 色を指定しないことで、ライブラリ本来の鮮やかで超高輝度な全カラーが美しく弾け飛びます！
+      });
+    };
+
     // レベルランクの称号テキスト計算
     const getRankTitle = (lvl) => {
       if (lvl === 0) return { title: "未開の種子", color: "text-slate-400", bg: "bg-slate-800" };
@@ -242,7 +289,7 @@
           5: "心のノイズを削ぎ落とす", 6: "聖典や名著からの学び", 7: "自然と調和する時間の確保", 8: "自己一致 of ライフワーク追求"
         },
         4: { // 人生の大目標
-          4: "公益と利他を循環させ\n自律型リーダーの模範となる",
+          4: "公益と利他をゴールに含む\n規律をカオスな世の中に広げる",
           0: "リベラルアーツと\nコーチングスキルの探求",
           1: "自律型組織 of 共創と\nビジネス of 好循環",
           2: "地域コミュニティ活性化と\n公益への持続的還元",
@@ -264,7 +311,7 @@
         },
         7: { // 財産・資産形成
           4: "持続可能な資産構築と\n公益還元の基盤設計",
-          0: "インデックス投資の自動積立", 1: "ポートフォリオの定期精査", 2: "固定費・サブスクの最適化", 3: "新規収入源プロトタイピング",
+          0: "インデックス投資 of 自動積立", 1: "ポートフォリオの定期精査", 2: "固定費・サブスクの最適化", 3: "新規収入源プロトタイピング",
           5: "金融史と経済心理の勉強", 6: "家族用ファイナンシャルプラン", 7: "公益信託への拠出準備", 8: "資産状況 of 月次可視化"
         },
         8: { // 家族・パートナーシップ
@@ -425,13 +472,12 @@
         }
       };
 
-      // 画面ピッタリにフィットさせる超強力スケーリングシステム（バグ回避の最強メモライズ化）
+      // 画面ピッタリにフィットさせる超強力スケーリングシステム
       const fitToScreen = useCallback(() => {
         if (!boardContainerRef.current) return;
         const containerWidth = boardContainerRef.current.clientWidth;
         const containerHeight = boardContainerRef.current.clientHeight;
         
-        // 0や極小サイズ（ブラウザ初期描画前、iframeロード前）の時は計算をスキップしてバグを防ぐ！
         if (containerWidth < 50 || containerHeight < 50) return;
         
         const boardW = 1722;
@@ -452,14 +498,12 @@
         setScrollOffset({ x: offsetX, y: offsetY });
       }, [isMobile]);
 
-      // 初回ロード時のブラウザリスナー設定
       useEffect(() => {
         handleResizeAndOrientation();
         window.addEventListener("resize", handleResizeAndOrientation);
         return () => window.removeEventListener("resize", handleResizeAndOrientation);
       }, []);
 
-      // ResizeObserverにより、Canvasエリアの本当のピクセル変化を検知してミリ秒で自動フィット
       useEffect(() => {
         if (!boardContainerRef.current) return;
         
@@ -758,16 +802,18 @@
           if (!next[4]) next[4] = {};
           if (!next[4][4]) next[4][4] = { text: "", level: 0, memo: "" };
 
+          // 最中心の大目標平均がLv.100に達した時
           if (next[4][4].level !== centerAvg && centerAvg === 100) {
-            setTimeout(() => triggerConfettiShow(), 300);
+            setTimeout(() => triggerConfettiShow(true), 350);
           }
           next[4][4].level = centerAvg;
 
           return next;
         });
 
+        // 叩いた個別の通常マスがLv.100になった時（極限お祝い関数をシンプルに発火！）
         if (updates.level === 100) {
-          triggerConfettiShow();
+          triggerConfettiShow(false);
         }
       };
 
@@ -970,7 +1016,7 @@
             </div>
           )}
 
-          {/* 左側サイドバー */}
+          {/* 左側サイドバー（モバイル時は完全に z-50 かつ fixed、PC時はフレキシブルな通常配置としてスライド開閉） */}
           <div className={`no-print transition-all duration-300 ease-in-out flex flex-col h-screen bg-[#0d1424] border-r border-slate-800/80 
             ${isMobile || isLandscape 
               ? 'fixed inset-y-0 left-0 w-80 shadow-[10px_0_50px_rgba(0,0,0,0.85)] z-50' 
@@ -980,7 +1026,7 @@
             ${fullPrintMode ? 'hidden' : ''}
           `}>
             
-            {/* 固定ヘッダー */}
+            {/* 固定ヘッダー（最上部に常に極小サイズで固定。プロジェクト名と閉じるボタンだけを置くことでスクロール領域を最大化） */}
             <div className="p-4 border-b border-slate-800/80 flex items-center justify-between gap-2 bg-[#0a0f1c] shrink-0">
               <div className="flex items-center gap-2 flex-grow">
                 <i className="fa-solid fa-gem text-yellow-500 text-base"></i>
@@ -1002,10 +1048,10 @@
               </button>
             </div>
 
-            {/* 超広大・統合シングルスクロールエリア */}
+            {/* 【大改造】超広大・統合シングルスクロールエリア（残り高さすべて。モバイル横置きでもスクロールが詰まらず最下部まで100%滑らかに届きます） */}
             <div className="flex-grow overflow-y-auto p-4 space-y-4 no-scrollbar bg-[#0d1424]">
               
-              {/* 1. 大目標進捗インジケーター */}
+              {/* 1. 大目標進捗インジケーター（スクロールの一部にして高さを節約） */}
               <div className="bg-slate-900/90 p-3.5 rounded-xl border border-slate-800/60">
                 <div className="flex justify-between items-center text-[10px] mb-1.5">
                   <span className="text-slate-400 font-bold">最中心大目標ランク</span>
@@ -1018,11 +1064,11 @@
                       style={{ width: `${cells?.[4]?.[4]?.level || 0}%` }}
                     ></div>
                   </div>
-                  <span className="text-xs font-black text-yellow-400 min-w-[38px] text-right font-orbitron">Lv.{cells?.[4]?.[4]?.level || 0}</span>
+                  <span className="text-sm font-black text-yellow-400 min-w-[42px] text-right font-orbitron">Lv.{cells?.[4]?.[4]?.level || 0}</span>
                 </div>
               </div>
 
-              {/* モバイル表示時またはランドスケープ時のみ設定をインクルード */}
+              {/* モバイル表示時またはランドスケープ時のみ設定をインクルード（ヘッダーから移植した全機能がここから完全に操作できます） */}
               {(isMobile || isLandscape) && (
                 <div className="bg-slate-950 p-3 rounded-xl border border-slate-800/80 space-y-2.5 mt-1 text-[11px] no-drag">
                   <div className="flex justify-between items-center text-slate-400 font-bold border-b border-slate-900 pb-1.5 mb-1.5">
@@ -1049,12 +1095,12 @@
                     </button>
                   </div>
 
-                  {/* フィット ＆ 印刷 */}
+                  {/* 画面にフィット ＆ 印刷 */}
                   <div className="grid grid-cols-2 gap-2 mt-1">
                     <button
                       onClick={() => {
                         fitToScreen();
-                        setIsSidebarOpen(false); 
+                        setIsSidebarOpen(false); // 利便性のために閉じます
                       }}
                       className="bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 py-1.5 rounded text-[10px] font-bold transition-all flex items-center justify-center gap-1.5"
                     >
@@ -1218,7 +1264,7 @@
                 </div>
               </div>
 
-              {/* 6. システム管理ボタン集 */}
+              {/* 6. システム管理ボタン集（フッターからスクロールの一部に移動させ、画面を100%活用！） */}
               <div className="bg-slate-950/50 p-3.5 rounded-xl border border-slate-850 space-y-2.5">
                 <div className="text-[9px] text-slate-400 font-bold tracking-widest flex items-center gap-1">
                   <i className="fa-solid fa-database text-yellow-500"></i>
@@ -1263,7 +1309,7 @@
           {/* 右側メインキャンバス */}
           <div className="flex-grow flex flex-col h-full overflow-hidden relative">
             
-            {/* 上部ヘッダー */}
+            {/* 上部ヘッダー（モバイル実機・またはランドスケープ時のみ非表示にし、通常PC環境では100%完全常時表示） */}
             <div className={`p-4 bg-[#0a0f1d] border-b border-slate-800 flex flex-wrap justify-between items-center gap-3 z-10 no-print 
               ${fullPrintMode || isMobile || isLandscape ? 'hidden' : ''}
             `}>
