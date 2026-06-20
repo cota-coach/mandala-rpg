@@ -148,7 +148,7 @@
     }
   </style>
 </head>
-<body class="bg-[#070a13] text-slate-100 overflow-hidden h-[100dvh] w-screen">
+<body class="bg-[#070a13] text-slate-100 overflow-hidden h-screen w-screen">
 
   <div id="root" class="h-full w-full"></div>
 
@@ -254,7 +254,7 @@
         0: { // 知性・学習
           4: "リベラルアーツと\nコーチングスキルの探求",
           0: "毎月4冊 of 読書習慣", 1: "プロコーチ資格の取得", 2: "システム思考 of 勉強", 3: "哲学・歴史書を読み解く",
-          5: "言語学習 of デイリー継続", 6: "メンターとの定期セッション", 7: "学んだ知見 of 読書習慣", 8: "デイリージャーナルの記入"
+          5: "言語学習 of デイリー継続", 6: "メンターとの定期セッション", 7: "学んだ知見 of 図解・発信", 8: "デイリージャーナルの記入"
         },
         1: { // 仕事・キャリア
           4: "自律型組織 of 共創と\nビジネスの好循環",
@@ -263,7 +263,7 @@
         },
         2: { // 社会貢献・公益
           4: "地域コミュニティ活性化と\n公益への持続的還元",
-          0: "地域公益活動への積極参画", 1: "自律コミュニティの立ち上げ", 2: "異業種ネットワーキング", 3: "若手世代 of 自立伴走メンター",
+          0: "地域公益活動への積極参画", 1: "自律コミュニティの立ち上げ", 2: "異業種ネットワーキング", 3: "若手世代の自立伴走メンター",
           5: "活動拠点的スペース提供", 6: "チャリティプロジェクト企画", 7: "地元イベントの企画・協賛", 8: "社会的投資(ソーシャルビジネス)"
         },
         3: { // 心・精神性
@@ -278,7 +278,7 @@
           2: "地域コミュニティ活性化と\n公益への持続的還元",
           3: "マインドフルネスの確立と\n揺るぎない自己信頼",
           5: "ウェルネス of 追求と\nベストパフォーマンス維持",
-          6: "日常にパッションを取り入れ\n豊かな生き方を体現する",
+          6: "日常にパッションを取り入れ\n豊かな生き方を體現する",
           7: "持続可能な資産構築と\n公益還元の基盤設計",
           8: "愛に満ちた家庭環境と\n子供への100%伴走サポート"
         },
@@ -604,10 +604,8 @@
           {dialogState.show && <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in no-drag"><div className="w-full max-w-md bg-slate-900 border-2 border-slate-800 rounded-2xl p-6 shadow-2xl relative overflow-hidden"><div className={`absolute top-0 inset-x-0 h-1.5 ${dialogState.type === 'danger' ? 'bg-red-500' : 'bg-yellow-500'}`}></div><h4 className="text-base font-black text-slate-100 flex items-center gap-2 mb-3"><i className={`fa-solid ${dialogState.type === 'danger' ? 'fa-triangle-exclamation text-red-500' : 'fa-circle-info text-yellow-500'}`}></i>{dialogState.title}</h4><p className="text-xs text-slate-300 leading-relaxed mb-6 whitespace-pre-wrap">{dialogState.text}</p><div className="flex justify-end gap-2.5"><button onClick={() => setDialogState({ show: false })} className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-2 px-4 rounded-lg font-bold transition-all border border-slate-700/60">キャンセル</button><button onClick={dialogState.onConfirm} className={`text-white text-xs py-2 px-4 rounded-lg font-bold transition-all shadow-md ${dialogState.type === 'danger' ? 'bg-red-600 hover:bg-red-500' : 'bg-yellow-500 hover:bg-yellow-400 text-slate-950'}`}>確実に実行する</button></div></div></div>}
 
           {/* 左サイドバー */}
-          <div className={`no-print transition-all duration-300 ease-in-out flex flex-col h-full bg-[#0d1424] border-r border-slate-800/80 ${isMobile || isLandscape ? 'fixed inset-y-0 left-0 w-80 shadow-[10px_0_50px_rgba(0,0,0,0.85)] z-50' : (isSidebarOpen ? 'w-96 min-w-[384px]' : 'w-0 min-w-0 border-r-0 overflow-hidden')} ${!isSidebarOpen ? '-translate-x-full' : 'translate-x-0'} ${fullPrintMode ? 'hidden' : ''}`}>
+          <div className={`no-print transition-all duration-300 ease-in-out flex flex-col h-[100dvh] bg-[#0d1424] border-r border-slate-800/80 ${isMobile || isLandscape ? 'fixed inset-y-0 left-0 w-80 shadow-[10px_0_50px_rgba(0,0,0,0.85)] z-50' : (isSidebarOpen ? 'w-96 min-w-[384px]' : 'w-0 min-w-0 border-r-0 overflow-hidden')} ${!isSidebarOpen ? '-translate-x-full' : 'translate-x-0'} ${fullPrintMode ? 'hidden' : ''}`}>
             <div className="p-4 border-b border-slate-800/80 flex items-center justify-between gap-2 bg-[#0a0f1c] shrink-0"><div className="flex items-center gap-2 flex-grow"><i className="fa-solid fa-gem text-yellow-500 text-base"></i><input type="text" value={projectName} onChange={(e) => setProjectName(e.target.value)} className="bg-transparent font-black text-sm text-slate-100 focus:outline-none border-b border-transparent focus:border-yellow-500/50 w-full px-1 py-0.5" placeholder="プロジェクト名"/></div><button onClick={() => setIsSidebarOpen(false)} className="text-slate-400 hover:text-red-400 p-2 rounded-lg hover:bg-slate-800/50 transition-colors no-drag shrink-0 text-xs font-bold flex items-center gap-1"><span>閉じる</span><i className="fa-solid fa-chevron-left text-[10px]"></i></button></div>
-            
-            {/* 【大改善】iOSバウンスでの見切れを100%封殺する極厚パディング領域：p-4 pb-48 とし、スペーサーを大幅強化！ */}
             <div className="flex-grow overflow-y-auto p-4 pb-48 space-y-4 no-scrollbar bg-[#0d1424]">
               <div className="bg-slate-900/90 p-3.5 rounded-xl border border-slate-800/60"><div className="flex justify-between items-center text-[10px] mb-1.5"><span className="text-slate-400 font-bold">最中心大目標ランク</span><span className={`font-bold px-2 py-0.5 rounded ${currentRank.bg} ${currentRank.color} text-[9px]`}>{currentRank.title}</span></div><div className="flex items-center gap-3"><div className="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-700/50"><div className="bg-gradient-to-r from-amber-500 via-yellow-400 to-cyan-400 h-full rounded-full transition-all duration-500" style={{ width: `${cells?.[4]?.[4]?.level || 0}%` }}></div></div><span className="text-sm font-black text-yellow-400 min-w-[42px] text-right font-orbitron">Lv.{cells?.[4]?.[4]?.level || 0}</span></div></div>
               {(isMobile || isLandscape) && (<div className="bg-slate-950 p-3 rounded-xl border border-slate-800/80 space-y-2.5 mt-1 text-[11px] no-drag"><div className="flex justify-between items-center text-slate-400 font-bold border-b border-slate-900 pb-1.5 mb-1.5"><span>📱 モバイル設定</span><button onClick={() => setIsSidebarOpen(false)} className="text-red-400 hover:text-red-300 font-bold">閉じる</button></div><div className="flex justify-between items-center text-slate-300"><span>インク節約印刷モード</span><button onClick={() => setPrintEconomy(!printEconomy)} className={`px-3 py-1 rounded font-bold border text-[10px] transition-all flex items-center gap-1 ${printEconomy ? 'bg-slate-200 text-slate-950 border-white' : 'bg-slate-900 text-slate-300 border-slate-800'}`}><i className={`fa-solid ${printEconomy ? 'fa-toggle-on text-emerald-600' : 'fa-toggle-off'}`}></i><span>{printEconomy ? "有効" : "無効"}</span></button></div><div className="grid grid-cols-2 gap-2 mt-1"><button onClick={() => { fitToScreen(); setIsSidebarOpen(false); }} className="bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 py-1.5 rounded text-[10px] font-bold transition-all flex items-center justify-center gap-1.5"><i className="fa-solid fa-expand text-cyan-400"></i><span>画面にフィット</span></button><button onClick={() => setFullPrintMode(true)} className="bg-cyan-600 hover:bg-cyan-500 text-white py-1.5 rounded text-[10px] font-bold transition-all flex items-center justify-center gap-1.5 shadow"><i className="fa-solid fa-print"></i><span>印刷プレビュー</span></button></div><div className="flex items-center justify-between text-slate-300 border-t border-slate-900 pt-2.5"><span>手動ズーム調節</span><div className="flex items-center gap-1.5 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-850"><button onClick={() => changeScaleStep(-0.05)} className="w-5.5 h-5.5 rounded bg-slate-800 flex items-center justify-center font-bold text-xs">-</button><span className="font-mono text-[10px] min-w-[32px] text-center">{Math.round(scale * 100)}%</span><button onClick={() => changeScaleStep(0.05)} className="w-5.5 h-5.5 rounded bg-slate-800 flex items-center justify-center font-bold text-xs">+</button></div></div></div>)}
@@ -624,25 +622,10 @@
                       </div>
                     </div>
                   ))}</div><div className="mt-3 bg-slate-950/60 p-3 rounded-lg border border-slate-800/40 space-y-1.5"><div className="text-[9px] text-slate-400 flex items-center gap-1 font-bold"><i className="fa-solid fa-wand-magic-sparkles text-cyan-400"></i>調和アドバイス</div><p className="text-[10px] text-slate-300 leading-relaxed font-medium">現在、最も推進力が高まっているのは <strong className="text-cyan-400">「{analyzedStats.strongest?.name}」</strong> です。さらに人生全体の共創と調和を広げるために、次は <strong className="text-yellow-400">「{analyzedStats.focusing?.name}」</strong> の領域に意識を向け、小さなアクションを1つ育てていきましょう。</p></div></div>
-              <div className="bg-slate-950/50 p-3.5 rounded-xl border border-slate-850 space-y-2.5">
-                <div className="text-[9px] text-slate-400 font-bold tracking-widest flex items-center gap-1"><i className="fa-solid fa-database text-yellow-500"></i>データ管理・同期</div>
-                <div className="grid grid-cols-2 gap-2">
-                  <button onClick={exportData} className="bg-slate-900 hover:bg-slate-800 text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all border border-slate-800"><i className="fa-solid fa-file-export"></i>バックアップ</button>
-                  <label className="bg-slate-900 hover:bg-slate-800 text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all border border-slate-800 cursor-pointer text-center"><i className="fa-solid fa-file-import"></i>復元ロード<input type="file" accept=".json" onChange={importData} className="hidden" /></label>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <button onClick={handleClearAll} className="bg-slate-900 hover:bg-slate-850 border border-slate-850 text-slate-400 hover:text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all"><i className="fa-solid fa-broom"></i>🧹 ゼロから白紙</button>
-                  <button onClick={handleFactoryReset} className="bg-red-950/40 hover:bg-red-900/50 border border-red-900/40 text-red-300 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all"><i className="fa-solid fa-rotate-left"></i>デモ復元</button>
-                </div>
-              </div>
+              <div className="bg-slate-950/50 p-3.5 rounded-xl border border-slate-850 space-y-2.5"><div className="text-[9px] text-slate-400 font-bold tracking-widest flex items-center gap-1"><i className="fa-solid fa-database text-yellow-500"></i>データ管理・同期</div><div className="grid grid-cols-2 gap-2"><button onClick={exportData} className="bg-slate-900 hover:bg-slate-850 border border-slate-850 text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all border border-slate-800"><i className="fa-solid fa-file-export"></i>バックアップ</button><label className="bg-slate-900 hover:bg-slate-850 border border-slate-850 text-slate-400 hover:text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all border border-slate-800 cursor-pointer text-center"><i className="fa-solid fa-file-import"></i>復元ロード<input type="file" accept=".json" onChange={importData} className="hidden" /></label></div><div className="grid grid-cols-2 gap-2"><button onClick={handleClearAll} className="bg-slate-900 hover:bg-slate-850 border border-slate-850 text-slate-400 hover:text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all"><i className="fa-solid fa-broom"></i>🧹 ゼロから白紙</button><button onClick={handleFactoryReset} className="bg-red-950/40 hover:bg-red-900/50 border border-red-900/40 text-red-300 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all"><i className="fa-solid fa-rotate-left"></i>デモ復元</button></div></div>
               
-              {/* 【バウンス見切れバグの完全超強化対策！】
-                  スペーサーを「h-36」から、超特厚の「h-48 (192px)」へと限界拡張！
-                  さらにiOSの引き戻しぷるんを完全に殺すための最終バッファとして、
-                  高さを十分に持たせた透明スペーサーを物理配置することで、
-                  スクロールしきった状態でも、確実に「ゼロから白紙」と「デモ復元」ボタンが
-                  画面上部に完全に押し出された状態でフリーズするように固定。iOSバウンス下でも100%確実にタップできます！ */}
-              <div className="h-48 sm:h-0 shrink-0 select-none pointer-events-none no-print"></div>
+              {/* 【バウンスクッション対策】iOSスワイプバー＆極限フッター引っ込み防止バッファ */}
+              <div className="h-48 shrink-0 select-none pointer-events-none no-print"></div>
             </div>
           </div>
 
@@ -669,7 +652,7 @@
                 </div>
               </div>
 
-              {/* ヘッダー右側調整類（PC専用） */}
+              {/* ヘッダー右側調整類 */}
               <div className="flex items-center gap-2">
                 <button onClick={() => setPrintEconomy(!printEconomy)} className={`p-2 rounded-lg text-xs font-bold border transition-all flex items-center gap-1.5 ${printEconomy ? 'bg-slate-200 text-slate-950 border-white' : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-slate-600'}`} title="背景を真っ白にしてインクを長持ちさせます"><i className={`fa-solid ${printEconomy ? 'fa-toggle-on text-emerald-600' : 'fa-toggle-off'}`}></i><span className="hidden sm:inline">インク節約</span></button>
                 <button onClick={() => setFullPrintMode(true)} className="bg-cyan-600 hover:bg-cyan-500 text-white text-xs py-2 px-3 rounded-lg font-bold flex items-center gap-1.5 transition-all shadow-md"><i className="fa-solid fa-print"></i><span className="hidden sm:inline">全画面印刷</span></button>
@@ -678,23 +661,24 @@
                 {/* スケールコントローラー */}
                 <div className="flex items-center gap-1.5 bg-slate-950 px-2 py-1.5 rounded-lg border border-slate-800 no-drag">
                   <button onClick={() => changeScaleStep(-0.1)} className="w-5.5 h-5.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-all"><i className="fa-solid fa-minus text-[8px]"></i></button>
-                  <input type="range" min="0.12" max="2.0" step="0.05" value={scale} onChange={(e) => setScale(parseFloat(e.target.value))} className="w-14 accent-cyan-500 h-1 rounded bg-slate-800"/><button onClick={() => changeScaleStep(0.1)} className="w-5.5 h-5.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-all"><i className="fa-solid fa-plus text-[8px]"></i></button>
+                  <input type="range" min="0.12" max="2.0" step="0.05" value={scale} onChange={(e) => setScale(parseFloat(e.target.value))} className="w-14 accent-cyan-500 h-1 rounded bg-slate-800"/>
+                  <button onClick={() => changeScaleStep(0.1)} className="w-5.5 h-5.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-all"><i className="fa-solid fa-plus text-[8px]"></i></button>
                   <span className="text-[9px] text-slate-300 font-mono w-8 text-right">{Math.round(scale * 100)}%</span>
                 </div>
               </div>
             </div>
 
-            {/* PC・モバイル共通の「親指フローティング・開閉ボタン」 */}
+            {/* フローティングメニュー */}
             {!isSidebarOpen && (
               <button onClick={(e) => { e.stopPropagation(); setIsSidebarOpen(true); }} className="fixed bottom-6 left-6 z-40 bg-[#0d1424]/95 hover:bg-slate-850 text-white border-2 border-emerald-500/80 px-4 py-3.5 rounded-full shadow-2xl backdrop-blur flex items-center gap-2 active:scale-95 transition-all font-bold text-sm select-none no-print no-drag animate-fade-in"><i className="fa-solid fa-bars text-emerald-400"></i><span>📊 メニュー</span></button>
             )}
 
-            {/* モバイル実機専用：右下の「フィット」ボタン */}
+            {/* 画面フィットボタン */}
             {(isMobile || isLandscape) && (
               <button onClick={(e) => { e.stopPropagation(); fitToScreen(); }} className="fixed bottom-6 right-6 z-40 bg-[#0d1424]/95 hover:bg-slate-850 text-white border border-slate-700/80 p-3.5 rounded-full shadow-2xl backdrop-blur flex items-center justify-center active:scale-95 transition-all select-none no-print no-drag animate-fade-in" title="画面にフィット"><i className="fa-solid fa-expand text-cyan-400 text-base"></i></button>
             )}
 
-            {/* 全画面印刷モードコントロール */}
+            {/* 全画面印刷プレビュー */}
             {fullPrintMode && (
               <div className="absolute top-4 left-4 right-4 flex justify-between items-center bg-slate-900/95 border border-slate-800 rounded-xl p-3.5 z-50 no-print">
                 <div className="flex items-center gap-3"><span className="text-xs font-bold text-yellow-400 flex items-center gap-2"><i className="fa-solid fa-crown"></i>{projectName} 印刷プレビュー</span></div>
@@ -710,7 +694,7 @@
                 {/* マンダラボード枠 */}
                 <div className={`print-area mandala-board-wrapper bg-[#0f1525]/60 rounded-3xl p-6 flex flex-wrap gap-5 justify-between relative shadow-[0_0_60px_rgba(0,0,0,0.6)] border border-slate-800/80 ${printEconomy ? 'bg-white shadow-none border-0' : ''}`}>
                   
-                  {/* マンダラブロック（3x3 = 9個） */}
+                  {/* マンダラブロック */}
                   {Array.from({ length: 9 }).map((_, bIndex) => {
                     const themeHue = blockHues[bIndex] || 0;
                     const blockAvgLv = bIndex === 4 ? (cells?.[4]?.[4]?.level || 0) : (cells?.[bIndex]?.[4]?.level || 0);
@@ -738,7 +722,7 @@
                           </div>
                           <span className={`text-[9px] px-1.5 py-0.5 rounded ${printEconomy ? 'text-black font-bold' : 'text-yellow-400 bg-yellow-500/10 font-orbitron'}`}>平均Lv.{blockAvgLv}</span>
 
-                          {/* 20色プレミアムパレット */}
+                          {/* 20色カラーパレット */}
                           {isPaletteOpen && (
                             <div className="absolute top-7 left-1 bg-slate-900 border-2 border-slate-800 rounded-xl p-3 shadow-2xl z-50 w-72 grid grid-cols-5 gap-1.5 animate-fade-in no-drag">
                               <div className="col-span-5 flex justify-between items-center text-[9px] text-slate-400 font-bold mb-1 pb-1 border-b border-slate-800"><span>ベースダークカラー(20色)</span><button onClick={() => setActivePaletteBlock(null)} className="text-red-400 hover:text-red-300">閉じる</button></div>
@@ -754,8 +738,12 @@
                             const isSelected = selectedCell.b === bIndex && selectedCell.c === cIndex;
                             const styleData = getCellColorAndStyle(bIndex, cIndex, cellData.level);
 
+                            // 各種セルの中心判定
                             const isBlockCenter = cIndex === 4;
                             const isAbsoluteCenter = bIndex === 4 && cIndex === 4;
+                            
+                            // 【今回の最重要追加判定】「人生の大目標」ブロック（ブロック4：曼荼羅全体のど真ん中ブロック）であるかどうか
+                            const isCentralBlock = bIndex === 4;
 
                             return (
                               <div
@@ -763,10 +751,8 @@
                                 onClick={(e) => {
                                   e.stopPropagation(); if (isMoved.current) return;
                                   if (isSelected) {
-                                    // すでに選択されている状態で「レベルボタン以外の領域」をもう一度クリックした時だけ、テキスト編集（エディタ）を起動
                                     startInlineEdit(bIndex, cIndex, e);
                                   } else {
-                                    // 未選択の時はワンクリックで「選択」
                                     setSelectedCell({ b: bIndex, c: cIndex });
                                   }
                                 }}
@@ -787,8 +773,11 @@
 
                                 <div className="flex items-center justify-between mt-0.5 h-5 select-none">
                                   
-                                  {/* 【ダブルクリック暴発完全阻止済】レベル調整ボタン（onTouchStart/onPointerDownの二重防御） */}
-                                  {isSelected && !isBlockCenter && !isAbsoluteCenter ? (
+                                  {/* 【バグの完全修正・超大解決！】
+                                      - レベル調整ボタン（プラスマイナス）を出現させる条件から「中央の大目標ブロック（ブロック4 = isCentralBlock）」を完全に除外しました。
+                                      - これにより、「人生の大目標（ブロック4）」の9マスすべてにおいて、手動調整プラスマイナスが【一切表示されなくなりました】。
+                                      - 他の周り8つのブロックを育てると、中央ブロック（人生の大目標ブロック）の中身とレベルに美しく連動し自動ロールアップされます！ */}
+                                  {isSelected && !isBlockCenter && !isAbsoluteCenter && !isCentralBlock ? (
                                     <div className="flex items-center gap-1 bg-[#0d1424]/90 rounded-full px-1.5 py-0.5 border border-cyan-500/30 no-drag shadow-lg relative z-30">
                                       <button 
                                         onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); }}
@@ -835,13 +824,13 @@
               </div>
             </div>
 
-            {/* 【大改善：3x3一括コックピット型統合ポップアップエディタ ＆ 完全スクロール＆見切れ救済仕様】 */}
+            {/* 3x3一括コックピット型統合ポップアップエディタ */}
             {editingCell && (
               <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/90 backdrop-blur-sm overflow-y-auto no-drag no-print">
                 <div className="w-full max-w-3xl bg-slate-900/95 border-2 border-cyan-500/30 rounded-2xl p-4 sm:p-5 shadow-[0_0_50px_rgba(6,182,212,0.35)] relative flex flex-col gap-3 my-auto max-h-[94vh] overflow-y-auto no-scrollbar">
                   <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-cyan-500 via-emerald-400 to-yellow-500 shrink-0"></div>
                   
-                  {/* 【領域名と中目標テキストの完全な分離設計】 */}
+                  {/* 領域タイトル変更 */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-2 shrink-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-[10px] text-cyan-400 font-black tracking-widest uppercase bg-cyan-950/80 px-2.5 py-1 rounded-md border border-cyan-500/20 font-orbitron">
@@ -855,7 +844,7 @@
                           onChange={(e) => handleBlockNameChangeInModal(e.target.value)}
                           className="bg-transparent font-black text-xs text-slate-100 focus:outline-none focus:text-yellow-400 w-44 sm:w-56"
                           placeholder="領域タイトルを変更（ホイールに連動）..."
-                          title="このブロック領域 of テーマ名（バランスホイール等の項目）をここから直接書き換えられます"
+                          title="このブロック領域のテーマ名（バランスホイール等の項目）をここから直接書き換えられます"
                         />
                       </div>
                     </div>
@@ -864,7 +853,7 @@
                     </span>
                   </div>
 
-                  {/* 【3x3ミニマップ】他のマスのテキストへ1タップ切り替え */}
+                  {/* 3x3ミニマップ */}
                   <div className="bg-slate-950/80 rounded-xl p-2.5 border border-slate-850 shrink-0">
                     <p className="text-[9px] text-slate-400 font-bold mb-1.5 flex items-center gap-1.5 select-none">
                       <i className="fa-solid fa-map-location-dot text-emerald-400"></i>
@@ -879,11 +868,8 @@
                           <div 
                             key={cIdx} 
                             onClick={() => {
-                              // 現在の大きな入力欄のテキストを、切り替える前のセルに一時保存
                               updateCellData(editingCell.b, editingCell.c, { text: inlineText });
-                              // 編集中のセルインデックス（c）を、タップされた新しいインデックスに変更
                               setEditingCell({ b: editingCell.b, c: cIdx });
-                              // 大きな入力欄（inlineText）に新しいセルのテキストを展開
                               setInlineText(cells?.[editingCell.b]?.[cIdx]?.text || "");
                             }}
                             className={`p-1.5 rounded-lg border text-left cursor-pointer transition-all relative overflow-hidden flex flex-col justify-between h-[52px] sm:h-[60px] hover:border-cyan-400/50 hover:bg-slate-900 ${
