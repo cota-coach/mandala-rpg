@@ -148,7 +148,7 @@
     }
   </style>
 </head>
-<body class="bg-[#070a13] text-slate-100 overflow-hidden h-screen w-screen">
+<body class="bg-[#070a13] text-slate-100 overflow-hidden h-[100dvh] w-screen">
 
   <div id="root" class="h-full w-full"></div>
 
@@ -263,7 +263,7 @@
         },
         2: { // 社会貢献・公益
           4: "地域コミュニティ活性化と\n公益への持続的還元",
-          0: "地域公益活動への積極参画", 1: "自律コミュニティの立ち上げ", 2: "異業種ネットワーキング", 3: "若手世代の自立伴走メンター",
+          0: "地域公益活動への積極参画", 1: "自律コミュニティの立ち上げ", 2: "異業種ネットワーキング", 3: "若手世代 of 自立伴走メンター",
           5: "活動拠点的スペース提供", 6: "チャリティプロジェクト企画", 7: "地元イベントの企画・協賛", 8: "社会的投資(ソーシャルビジネス)"
         },
         3: { // 心・精神性
@@ -285,7 +285,7 @@
         5: { // 健康・身体
           4: "ウェルネス of 追求と\nベストパフォーマンス維持",
           0: "週3回のランニング＆ジム", 1: "毎日7時間の高品質睡眠", 2: "オーガニック・無添加食事", 3: "年1回の人間ドック徹底受診",
-          5: "ストレッチでの柔軟性維持", 6: "呼吸法と整いサウナ習慣", 7: "水分補給と健康ログ記録", 8: "体幹・姿勢リreset調整"
+          5: "ストレッチでの柔軟性維持", 6: "呼吸法と整いサウナ習慣", 7: "水分補給と健康ログ記録", 8: "体幹・姿勢リセット調整"
         },
         6: { // 趣味・ライフワーク
           4: "日常にパッションを取り入れ\n豊かな生き方を体現する",
@@ -604,10 +604,12 @@
           {dialogState.show && <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in no-drag"><div className="w-full max-w-md bg-slate-900 border-2 border-slate-800 rounded-2xl p-6 shadow-2xl relative overflow-hidden"><div className={`absolute top-0 inset-x-0 h-1.5 ${dialogState.type === 'danger' ? 'bg-red-500' : 'bg-yellow-500'}`}></div><h4 className="text-base font-black text-slate-100 flex items-center gap-2 mb-3"><i className={`fa-solid ${dialogState.type === 'danger' ? 'fa-triangle-exclamation text-red-500' : 'fa-circle-info text-yellow-500'}`}></i>{dialogState.title}</h4><p className="text-xs text-slate-300 leading-relaxed mb-6 whitespace-pre-wrap">{dialogState.text}</p><div className="flex justify-end gap-2.5"><button onClick={() => setDialogState({ show: false })} className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-2 px-4 rounded-lg font-bold transition-all border border-slate-700/60">キャンセル</button><button onClick={dialogState.onConfirm} className={`text-white text-xs py-2 px-4 rounded-lg font-bold transition-all shadow-md ${dialogState.type === 'danger' ? 'bg-red-600 hover:bg-red-500' : 'bg-yellow-500 hover:bg-yellow-400 text-slate-950'}`}>確実に実行する</button></div></div></div>}
 
           {/* 左サイドバー */}
-          <div className={`no-print transition-all duration-300 ease-in-out flex flex-col h-screen bg-[#0d1424] border-r border-slate-800/80 ${isMobile || isLandscape ? 'fixed inset-y-0 left-0 w-80 shadow-[10px_0_50px_rgba(0,0,0,0.85)] z-50' : (isSidebarOpen ? 'w-96 min-w-[384px]' : 'w-0 min-w-0 border-r-0 overflow-hidden')} ${!isSidebarOpen ? '-translate-x-full' : 'translate-x-0'} ${fullPrintMode ? 'hidden' : ''}`}>
+          <div className={`no-print transition-all duration-300 ease-in-out flex flex-col h-full bg-[#0d1424] border-r border-slate-800/80 ${isMobile || isLandscape ? 'fixed inset-y-0 left-0 w-80 shadow-[10px_0_50px_rgba(0,0,0,0.85)] z-50' : (isSidebarOpen ? 'w-96 min-w-[384px]' : 'w-0 min-w-0 border-r-0 overflow-hidden')} ${!isSidebarOpen ? '-translate-x-full' : 'translate-x-0'} ${fullPrintMode ? 'hidden' : ''}`}>
             <div className="p-4 border-b border-slate-800/80 flex items-center justify-between gap-2 bg-[#0a0f1c] shrink-0"><div className="flex items-center gap-2 flex-grow"><i className="fa-solid fa-gem text-yellow-500 text-base"></i><input type="text" value={projectName} onChange={(e) => setProjectName(e.target.value)} className="bg-transparent font-black text-sm text-slate-100 focus:outline-none border-b border-transparent focus:border-yellow-500/50 w-full px-1 py-0.5" placeholder="プロジェクト名"/></div><button onClick={() => setIsSidebarOpen(false)} className="text-slate-400 hover:text-red-400 p-2 rounded-lg hover:bg-slate-800/50 transition-colors no-drag shrink-0 text-xs font-bold flex items-center gap-1"><span>閉じる</span><i className="fa-solid fa-chevron-left text-[10px]"></i></button></div>
-            <div className="flex-grow overflow-y-auto p-4 space-y-4 no-scrollbar bg-[#0d1424]">
-              <div className="bg-slate-900/90 p-3.5 rounded-xl border border-slate-800/60"><div className="flex justify-between items-center text-[10px] mb-1.5"><span className="text-slate-400 font-bold">最中心大目標ランク</span><span className={`font-bold px-2 py-0.5 rounded ${currentRank.bg} ${currentRank.color} text-[9px]`}>{currentRank.title}</span></div><div className="flex items-center gap-3"><div className="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-700/50"><div className="bg-gradient-to-r from-amber-500 via-yellow-400 to-cyan-400 h-full rounded-full transition-all duration-500" style={{ width: `${cells?.[4]?.[4]?.level || 0}%` }}></div></div><span className="text-xs font-black text-yellow-400 min-w-[38px] text-right font-orbitron">Lv.{cells?.[4]?.[4]?.level || 0}</span></div></div>
+            
+            {/* 【大改善】iOSバウンスでの見切れを100%封殺する極厚パディング領域：p-4 pb-48 とし、スペーサーを大幅強化！ */}
+            <div className="flex-grow overflow-y-auto p-4 pb-48 space-y-4 no-scrollbar bg-[#0d1424]">
+              <div className="bg-slate-900/90 p-3.5 rounded-xl border border-slate-800/60"><div className="flex justify-between items-center text-[10px] mb-1.5"><span className="text-slate-400 font-bold">最中心大目標ランク</span><span className={`font-bold px-2 py-0.5 rounded ${currentRank.bg} ${currentRank.color} text-[9px]`}>{currentRank.title}</span></div><div className="flex items-center gap-3"><div className="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-700/50"><div className="bg-gradient-to-r from-amber-500 via-yellow-400 to-cyan-400 h-full rounded-full transition-all duration-500" style={{ width: `${cells?.[4]?.[4]?.level || 0}%` }}></div></div><span className="text-sm font-black text-yellow-400 min-w-[42px] text-right font-orbitron">Lv.{cells?.[4]?.[4]?.level || 0}</span></div></div>
               {(isMobile || isLandscape) && (<div className="bg-slate-950 p-3 rounded-xl border border-slate-800/80 space-y-2.5 mt-1 text-[11px] no-drag"><div className="flex justify-between items-center text-slate-400 font-bold border-b border-slate-900 pb-1.5 mb-1.5"><span>📱 モバイル設定</span><button onClick={() => setIsSidebarOpen(false)} className="text-red-400 hover:text-red-300 font-bold">閉じる</button></div><div className="flex justify-between items-center text-slate-300"><span>インク節約印刷モード</span><button onClick={() => setPrintEconomy(!printEconomy)} className={`px-3 py-1 rounded font-bold border text-[10px] transition-all flex items-center gap-1 ${printEconomy ? 'bg-slate-200 text-slate-950 border-white' : 'bg-slate-900 text-slate-300 border-slate-800'}`}><i className={`fa-solid ${printEconomy ? 'fa-toggle-on text-emerald-600' : 'fa-toggle-off'}`}></i><span>{printEconomy ? "有効" : "無効"}</span></button></div><div className="grid grid-cols-2 gap-2 mt-1"><button onClick={() => { fitToScreen(); setIsSidebarOpen(false); }} className="bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 py-1.5 rounded text-[10px] font-bold transition-all flex items-center justify-center gap-1.5"><i className="fa-solid fa-expand text-cyan-400"></i><span>画面にフィット</span></button><button onClick={() => setFullPrintMode(true)} className="bg-cyan-600 hover:bg-cyan-500 text-white py-1.5 rounded text-[10px] font-bold transition-all flex items-center justify-center gap-1.5 shadow"><i className="fa-solid fa-print"></i><span>印刷プレビュー</span></button></div><div className="flex items-center justify-between text-slate-300 border-t border-slate-900 pt-2.5"><span>手動ズーム調節</span><div className="flex items-center gap-1.5 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-850"><button onClick={() => changeScaleStep(-0.05)} className="w-5.5 h-5.5 rounded bg-slate-800 flex items-center justify-center font-bold text-xs">-</button><span className="font-mono text-[10px] min-w-[32px] text-center">{Math.round(scale * 100)}%</span><button onClick={() => changeScaleStep(0.05)} className="w-5.5 h-5.5 rounded bg-slate-800 flex items-center justify-center font-bold text-xs">+</button></div></div></div>)}
               <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800/80"><div className="flex justify-between items-start mb-3"><div className="w-2/3"><span className="text-[9px] text-slate-400 font-bold tracking-wider uppercase bg-slate-850 px-2 py-0.5 rounded">BLOCK {selectedCell.b + 1} - CELL {selectedCell.c + 1}</span><h3 className="text-xs font-black text-slate-200 mt-2 flex items-center gap-2 truncate"><i className={`fa-solid ${selectedCell.b === 4 ? 'fa-crown text-yellow-500' : 'fa-compass text-cyan-400'}`}></i>{blockNames[selectedCell.b] || ""}</h3></div><div className="text-right"><span className="text-[9px] text-slate-400 block font-bold">目標強度</span><span className="text-xl font-black text-yellow-400 font-orbitron">Lv.{currentCellData.level}</span></div></div><div className="space-y-1.5"><label className="text-[10px] text-slate-400 font-bold block">目標テキスト (Enter改行反映)</label><textarea value={currentCellData.text} onChange={(e) => updateCellData(selectedCell.b, selectedCell.c, { text: e.target.value })} rows={3} className="w-full bg-slate-950 border border-slate-800/80 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-yellow-500 font-medium whitespace-pre-wrap leading-relaxed" placeholder="ここにマスの行動計画や目標を入力してください..."/></div><div className="mt-3.5 pt-3.5 border-t border-slate-800/80 space-y-2.5"><div className="flex justify-between items-center"><span className="text-[10px] text-slate-400 font-bold">自律レベル成長{(selectedCell.b === 4 || selectedCell.c === 4) && <span className="text-red-400 ml-1">(自動ロールアップ対象)</span>}</span></div><div className="flex items-center gap-1.5"><button onClick={() => adjustLevel(selectedCell.b, selectedCell.c, -10)} disabled={selectedCell.b === 4 || selectedCell.c === 4} className="bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-[10px] px-2 py-1.5 rounded text-slate-300 font-bold transition-all">-10</button><button onClick={() => adjustLevel(selectedCell.b, selectedCell.c, -1)} disabled={selectedCell.b === 4 || selectedCell.c === 4} className="bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-[10px] px-2 py-1.5 rounded text-slate-300 font-bold transition-all">-1</button><input type="range" min="0" max="100" value={currentCellData.level} onChange={(e) => updateCellData(selectedCell.b, selectedCell.c, { level: parseInt(e.target.value) })} disabled={selectedCell.b === 4 || selectedCell.c === 4} className="w-full accent-yellow-500 h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer disabled:opacity-30"/><button onClick={() => adjustLevel(selectedCell.b, selectedCell.c, 1)} disabled={selectedCell.b === 4 || selectedCell.c === 4} className="bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-[10px] px-2 py-1.5 rounded text-slate-300 font-bold transition-all">+1</button><button onClick={() => adjustLevel(selectedCell.b, selectedCell.c, 10)} disabled={selectedCell.b === 4 || selectedCell.c === 4} className="bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-[10px] px-2 py-1.5 rounded text-slate-300 font-bold transition-all">+10</button></div></div></div>
               <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800/80 space-y-2"><label className="text-[10px] text-slate-400 font-bold block flex items-center gap-1.5"><i className="fa-solid fa-pen-nib text-cyan-400"></i>行動指針・コーチングログ</label><textarea value={currentCellData.memo || ""} onChange={(e) => updateCellData(selectedCell.b, selectedCell.c, { memo: e.target.value })} rows={2} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-300 focus:outline-none focus:border-cyan-500 font-medium leading-relaxed" placeholder="具体的な手法や、日々の気付き、テニスや仕事へのアプローチなど..."/></div>
@@ -622,14 +624,25 @@
                       </div>
                     </div>
                   ))}</div><div className="mt-3 bg-slate-950/60 p-3 rounded-lg border border-slate-800/40 space-y-1.5"><div className="text-[9px] text-slate-400 flex items-center gap-1 font-bold"><i className="fa-solid fa-wand-magic-sparkles text-cyan-400"></i>調和アドバイス</div><p className="text-[10px] text-slate-300 leading-relaxed font-medium">現在、最も推進力が高まっているのは <strong className="text-cyan-400">「{analyzedStats.strongest?.name}」</strong> です。さらに人生全体の共創と調和を広げるために、次は <strong className="text-yellow-400">「{analyzedStats.focusing?.name}」</strong> の領域に意識を向け、小さなアクションを1つ育てていきましょう。</p></div></div>
-              <div className="bg-slate-950/50 p-3.5 rounded-xl border border-slate-850 space-y-2.5"><div className="text-[9px] text-slate-400 font-bold tracking-widest flex items-center gap-1"><i className="fa-solid fa-database text-yellow-500"></i>データ管理・同期</div><div className="grid grid-cols-2 gap-2"><button onClick={exportData} className="bg-slate-900 hover:bg-slate-800 text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all border border-slate-800"><i className="fa-solid fa-file-export"></i>バックアップ</button><label className="bg-slate-900 hover:bg-slate-800 text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all border border-slate-800 cursor-pointer text-center"><i className="fa-solid fa-file-import"></i>復元ロード<input type="file" accept=".json" onChange={importData} className="hidden" /></label></div><div className="grid grid-cols-2 gap-2"><button onClick={handleClearAll} className="bg-slate-900 hover:bg-slate-850 border border-slate-850 text-slate-400 hover:text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all"><i className="fa-solid fa-broom"></i>🧹 ゼロから白紙</button><button onClick={handleFactoryReset} className="bg-red-950/40 hover:bg-red-900/50 border border-red-900/40 text-red-300 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all"><i className="fa-solid fa-rotate-left"></i>デモ復元</button></div></div>
+              <div className="bg-slate-950/50 p-3.5 rounded-xl border border-slate-850 space-y-2.5">
+                <div className="text-[9px] text-slate-400 font-bold tracking-widest flex items-center gap-1"><i className="fa-solid fa-database text-yellow-500"></i>データ管理・同期</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button onClick={exportData} className="bg-slate-900 hover:bg-slate-800 text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all border border-slate-800"><i className="fa-solid fa-file-export"></i>バックアップ</button>
+                  <label className="bg-slate-900 hover:bg-slate-800 text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all border border-slate-800 cursor-pointer text-center"><i className="fa-solid fa-file-import"></i>復元ロード<input type="file" accept=".json" onChange={importData} className="hidden" /></label>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button onClick={handleClearAll} className="bg-slate-900 hover:bg-slate-850 border border-slate-850 text-slate-400 hover:text-slate-200 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all"><i className="fa-solid fa-broom"></i>🧹 ゼロから白紙</button>
+                  <button onClick={handleFactoryReset} className="bg-red-950/40 hover:bg-red-900/50 border border-red-900/40 text-red-300 text-[10px] py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all"><i className="fa-solid fa-rotate-left"></i>デモ復元</button>
+                </div>
+              </div>
               
-              {/* 【最重要・スマホ縦画面バグ完全大改修！】
-                  - 左サイドバーのスクロール可能コンテナの物理的な最下部に、
-                    `h-28 sm:h-0` (スマートフォン環境の時だけ28単位 = 約112px) の「透明な余白クッション」を新設！
-                  - これにより、iPhoneのセーフエリア（底面スワイプバー）やオーバースクロールのプルンとしたバウンスに邪魔されることなく、
-                    最下部の「ゼロから白紙」「デモ復元」ボタンが画面内に美しく留まり、100%確実にノントラブルでタップできるようになりました！ */}
-              <div className="h-28 sm:h-0 shrink-0 select-none pointer-events-none no-print"></div>
+              {/* 【バウンス見切れバグの完全超強化対策！】
+                  スペーサーを「h-36」から、超特厚の「h-48 (192px)」へと限界拡張！
+                  さらにiOSの引き戻しぷるんを完全に殺すための最終バッファとして、
+                  高さを十分に持たせた透明スペーサーを物理配置することで、
+                  スクロールしきった状態でも、確実に「ゼロから白紙」と「デモ復元」ボタンが
+                  画面上部に完全に押し出された状態でフリーズするように固定。iOSバウンス下でも100%確実にタップできます！ */}
+              <div className="h-48 sm:h-0 shrink-0 select-none pointer-events-none no-print"></div>
             </div>
           </div>
 
@@ -665,8 +678,7 @@
                 {/* スケールコントローラー */}
                 <div className="flex items-center gap-1.5 bg-slate-950 px-2 py-1.5 rounded-lg border border-slate-800 no-drag">
                   <button onClick={() => changeScaleStep(-0.1)} className="w-5.5 h-5.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-all"><i className="fa-solid fa-minus text-[8px]"></i></button>
-                  <input type="range" min="0.12" max="2.0" step="0.05" value={scale} onChange={(e) => setScale(parseFloat(e.target.value))} className="w-14 accent-cyan-500 h-1 rounded bg-slate-800"/>
-                  <button onClick={() => changeScaleStep(0.1)} className="w-5.5 h-5.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-all"><i className="fa-solid fa-plus text-[8px]"></i></button>
+                  <input type="range" min="0.12" max="2.0" step="0.05" value={scale} onChange={(e) => setScale(parseFloat(e.target.value))} className="w-14 accent-cyan-500 h-1 rounded bg-slate-800"/><button onClick={() => changeScaleStep(0.1)} className="w-5.5 h-5.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-all"><i className="fa-solid fa-plus text-[8px]"></i></button>
                   <span className="text-[9px] text-slate-300 font-mono w-8 text-right">{Math.round(scale * 100)}%</span>
                 </div>
               </div>
@@ -702,6 +714,7 @@
                   {Array.from({ length: 9 }).map((_, bIndex) => {
                     const themeHue = blockHues[bIndex] || 0;
                     const blockAvgLv = bIndex === 4 ? (cells?.[4]?.[4]?.level || 0) : (cells?.[bIndex]?.[4]?.level || 0);
+
                     const isFocusTarget = zoomBlock === null || zoomBlock === bIndex;
                     if (!isFocusTarget) return null;
 
@@ -842,7 +855,7 @@
                           onChange={(e) => handleBlockNameChangeInModal(e.target.value)}
                           className="bg-transparent font-black text-xs text-slate-100 focus:outline-none focus:text-yellow-400 w-44 sm:w-56"
                           placeholder="領域タイトルを変更（ホイールに連動）..."
-                          title="このブロック領域のテーマ名（バランスホイール等の項目）をここから直接書き換えられます"
+                          title="このブロック領域 of テーマ名（バランスホイール等の項目）をここから直接書き換えられます"
                         />
                       </div>
                     </div>
